@@ -1,3 +1,5 @@
+# core/settings.py
+import os
 from pathlib import Path
 from datetime import timedelta
 
@@ -17,6 +19,8 @@ INSTALLED_APPS = [
 
     # Third-party
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist', 
     'corsheaders',
 
     # Local Apps
@@ -32,6 +36,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -101,3 +106,22 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
 }
+
+# --- Celery Configuration ---
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Africa/Lagos' 
+
+# --- Media Files ---
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# --- CORS Settings ---
+CORS_ALLOW_ALL_ORIGINS = True 
+CORS_ALLOWED_ORIGINS = ["http://localhost:5173",]
+CORS_ALLOW_CREDENTIALS = True
+
+GOOGLE_CLIENT_ID = "Y40494551644-s99gsks1cfgrfeubjsk7q6c302he0u11.apps.googleusercontent.com"
