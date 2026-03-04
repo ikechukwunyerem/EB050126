@@ -16,7 +16,6 @@ def process_resource_thumbnail(resource_id):
         if not resource.cover_image:
             return "No cover image to process."
 
-        # FIX: Use .path to get the absolute file location in the media directory
         img = Image.open(resource.cover_image.path)
         
         # Convert to RGB (in case of PNG with transparency)

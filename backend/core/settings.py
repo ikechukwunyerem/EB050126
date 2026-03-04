@@ -125,3 +125,7 @@ CORS_ALLOWED_ORIGINS = ["http://localhost:5173",]
 CORS_ALLOW_CREDENTIALS = True
 
 GOOGLE_CLIENT_ID = "Y40494551644-s99gsks1cfgrfeubjsk7q6c302he0u11.apps.googleusercontent.com"
+
+# --- Paystack Integration ---
+PAYSTACK_SECRET_KEY = "sk_test_your_secret_key_here"
+PAYSTACK_PUBLIC_KEY = "pk_test_your_public_key_here"
