@@ -1,21 +1,29 @@
 # payments/views.py
+import requests
 import hmac
 import hashlib
 import json
+import uuid
+from datetime import timedelta
 
-import requests
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status, permissions
 from django.conf import settings
-from orders.models import Order
-
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.utils import timezone
+from django.contrib.auth import get_user_model
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, permissions
+
+from orders.models import Order
+from subscriptions.models import SubscriptionPlan, UserSubscription
+
+User = get_user_model()
 
 class InitializePaystackView(APIView):
-    # Only authenticated users with real orders can pay
+    """Initializes standard e-commerce store orders"""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -25,7 +33,6 @@ class InitializePaystackView(APIView):
             return Response({'error': 'order_number is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Ensure the order belongs to the user and is still unpaid
             order = Order.objects.get(
                 order_number=order_number, 
                 user=request.user, 
@@ -34,10 +41,7 @@ class InitializePaystackView(APIView):
         except Order.DoesNotExist:
             return Response({'error': 'Valid unpaid order not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Paystack API URL
         url = "https://api.paystack.co/transaction/initialize"
-        
-        # Paystack requires the amount in Kobo (Naira * 100)
         amount_in_kobo = int(order.total_amount * 100)
         
         headers = {
@@ -48,81 +52,141 @@ class InitializePaystackView(APIView):
         data = {
             "email": request.user.email,
             "amount": amount_in_kobo,
-            "reference": order.order_number, # We use our order number as the reference
-            "callback_url": f"{settings.FRONTEND_URL}/payment-success" # Where Paystack sends the user after paying
+            "reference": order.order_number,
+            "callback_url": f"{settings.FRONTEND_URL}/payment-success",
+            "metadata": {
+                "transaction_type": "order"
+            }
         }
 
-        # Make the request to Paystack
         response = requests.post(url, headers=headers, json=data)
         response_data = response.json()
 
         if response_data.get('status'):
-            # Paystack generated a checkout link successfully
             return Response({
                 'authorization_url': response_data['data']['authorization_url'],
                 'access_code': response_data['data']['access_code'],
                 'reference': response_data['data']['reference']
             }, status=status.HTTP_200_OK)
         else:
-            # Something went wrong with the Paystack request
             return Response({'error': response_data.get('message', 'Paystack initialization failed')}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class InitializeSubscriptionView(APIView):
+    """Initializes recurring subscription plans"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        plan_id = request.data.get('plan_id')
+        
+        if not plan_id:
+            return Response({'error': 'plan_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            plan = SubscriptionPlan.objects.get(id=plan_id, is_active=True)
+            plan_price = plan.prices.get(currency='NGN')
+        except SubscriptionPlan.DoesNotExist:
+            return Response({'error': 'Valid plan not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            return Response({'error': 'Price not configured for this plan'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reference = f"SUB-{uuid.uuid4().hex[:8].upper()}"
+        amount_in_kobo = int(plan_price.amount * 100)
+        
+        url = "https://api.paystack.co/transaction/initialize"
+        headers = {
+            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "email": request.user.email,
+            "amount": amount_in_kobo,
+            "reference": reference,
+            "callback_url": f"{settings.FRONTEND_URL}/payment-success",
+            "metadata": {
+                "transaction_type": "subscription",
+                "plan_id": plan.id
+            }
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        response_data = response.json()
+
+        if response_data.get('status'):
+            return Response({
+                'authorization_url': response_data['data']['authorization_url'],
+                'reference': reference
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': response_data.get('message', 'Initialization failed')}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PaystackWebhookView(APIView):
-    # Public endpoint, no authentication required (we verify the signature instead)
+    """Securely handles successful payments from Paystack"""
     permission_classes = []
 
     def post(self, request, *args, **kwargs):
-        # 1. Get Paystack's signature from the headers
         paystack_signature = request.headers.get('x-paystack-signature')
         if not paystack_signature:
             return HttpResponse(status=400)
 
-        # 2. Get the raw payload exactly as it arrived
         payload = request.body
 
-        # 3. Calculate our own signature using our Secret Key
         expected_signature = hmac.new(
             settings.PAYSTACK_SECRET_KEY.encode('utf-8'),
             payload,
             hashlib.sha512
         ).hexdigest()
 
-        # 4. Compare the signatures. If they don't match, reject the request!
         if paystack_signature != expected_signature:
             return HttpResponse("Unauthorized", status=401)
 
-        # 5. The request is authentic! Let's process the event.
         try:
             event_data = json.loads(payload)
         except json.JSONDecodeError:
             return HttpResponse(status=400)
 
-        # We only care about successful charges right now
         if event_data.get('event') == 'charge.success':
             data = event_data.get('data', {})
-            reference = data.get('reference') # This is our Order Number
+            reference = data.get('reference', '')
+            metadata = data.get('metadata', {})
+            
+            # Read our secret tag to know how to process this
+            transaction_type = metadata.get('transaction_type', 'order')
 
-            if reference:
+            if transaction_type == 'subscription':
+                plan_id = metadata.get('plan_id')
+                user_email = data.get('customer', {}).get('email')
+                
                 try:
-                    # Find the exact order in our database
-                    order = Order.objects.get(order_number=reference)
+                    user = User.objects.get(email=user_email)
+                    plan = SubscriptionPlan.objects.get(id=plan_id)
                     
-                    # Fulfill the order!
-                    if order.payment_status != 'paid':
-                        order.payment_status = 'paid'
-                        order.save()
-                        
-                        # --- Future Expansion Point ---
-                        # If this was a digital resource, you would create the 
-                        # SavedResource access row here. If it was a physical book, 
-                        # you might trigger an email to your shipping department here.
-                        
-                except Order.DoesNotExist:
-                    # Log this in a production environment: Paystack sent a success 
-                    # message for an order we don't have in our database.
-                    pass 
+                    end_date = timezone.now() + timedelta(days=plan.duration_days)
+                    
+                    UserSubscription.objects.update_or_create(
+                        user=user,
+                        defaults={
+                            'plan': plan,
+                            'status': 'active',
+                            'current_period_start': timezone.now(),
+                            'current_period_end': end_date,
+                            'cancel_at_period_end': False
+                        }
+                    )
+                except Exception as e:
+                    print("Webhook Subscription Error:", e)
 
-        # 6. Always return a 200 OK immediately so Paystack knows we received it 
-        # and doesn't try to send it again.
+            else:
+                if reference.startswith('ORD-'):
+                    try:
+                        order = Order.objects.get(order_number=reference)
+                        if order.payment_status != 'paid':
+                            order.payment_status = 'paid'
+                            order.save()
+                    except Order.DoesNotExist:
+                        pass
+
         return HttpResponse(status=200)

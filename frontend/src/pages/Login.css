@@ -4,8 +4,8 @@
     justify-content: center;
     align-items: center;
     min-height: calc(100vh - 70px);
-    /* Subtracting navbar height */
     background-color: var(--bg-light);
+    padding: 20px;
 }
 
 .login-card {
@@ -20,24 +20,102 @@
 
 .login-card h2 {
     color: var(--primary-color);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .login-card p {
     color: var(--text-light);
-    margin-bottom: 30px;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
 }
 
-.error-message {
-    background-color: #ffebee;
-    color: #c62828;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    font-size: 0.9rem;
+/* Form Styles */
+.email-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.email-login-form input {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.email-login-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.login-btn-full {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: var(--border-radius);
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.login-btn-full:hover {
+    background-color: #256629;
+}
+
+/* Separator Styles */
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 25px 0;
+    color: #888;
+    font-size: 0.85rem;
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #eee;
+}
+
+.separator span {
+    padding: 0 10px;
 }
 
 .google-btn-wrapper {
     display: flex;
     justify-content: center;
+    margin-bottom: 20px;
+}
+
+/* Bottom Links */
+.auth-switch-text {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.auth-link {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 5px;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+.error-message {
+    background-color: #fff1f0;
+    border: 1px solid #ffa39e;
+    color: #cf1322;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    font-size: 0.85rem;
 }

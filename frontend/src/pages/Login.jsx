@@ -1,6 +1,6 @@
 // src/pages/Login.jsx
 import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
@@ -9,32 +9,59 @@ import './Login.css';
 export default function Login() {
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
-    const [error, setError] = useState(null);
 
+    // States for Email/Password Login
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    // --- 1. Handle Traditional Email/Password Login ---
+    const handleEmailLogin = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await axios.post('http://localhost:8000/api/auth/login/', {
+                email: email,
+                password: password
+            });
+
+            // Using the custom serializer data: { access, refresh, user: {...} }
+            login(response.data.user, {
+                access: response.data.access,
+                refresh: response.data.refresh
+            });
+
+            navigate('/library');
+        } catch (err) {
+            console.error("Email Login Failed:", err);
+            setError(err.response?.data?.detail || "Invalid email or password.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // --- 2. Handle Google Login (Existing) ---
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
-            // 1. Send token to Django
             const response = await axios.post('http://localhost:8000/api/auth/google/', {
                 credential: credentialResponse.credential,
             });
 
-            console.log("Django Response:", response.data); // Helpful for debugging!
+            const accessToken = response.data.access || (response.data.tokens && response.data.tokens.access);
+            const refreshToken = response.data.refresh || (response.data.tokens && response.data.tokens.refresh);
 
-            // 2. Extract tokens safely (checking both common Django formats)
-            const accessToken = response.data.access || response.data.access_token || (response.data.tokens && response.data.tokens.access);
-            const refreshToken = response.data.refresh || response.data.refresh_token || (response.data.tokens && response.data.tokens.refresh);
-
-            // 3. Update Global Auth State
             login(response.data.user, {
                 access: accessToken,
                 refresh: refreshToken
             });
 
-            // 4. Redirect to Library
             navigate('/library');
         } catch (err) {
-            console.error("Login Failed:", err);
-            setError("Failed to authenticate with the server. Please try again.");
+            console.error("Google Login Failed:", err);
+            setError("Google authentication failed. Please try again.");
         }
     };
 
@@ -46,14 +73,42 @@ export default function Login() {
 
                 {error && <div className="error-message">{error}</div>}
 
+                {/* Email and Password Form */}
+                <form onSubmit={handleEmailLogin} className="email-login-form">
+                    <input
+                        type="email"
+                        placeholder="Email Address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                    <button type="submit" className="login-btn-full" disabled={loading}>
+                        {loading ? "Logging in..." : "Login"}
+                    </button>
+                </form>
+
+                <div className="separator">
+                    <span>OR</span>
+                </div>
+
+                {/* Google Login Button */}
                 <div className="google-btn-wrapper">
                     <GoogleLogin
                         onSuccess={handleGoogleSuccess}
-                        onError={() => {
-                            setError("Google popup closed or failed.");
-                        }}
+                        onError={() => setError("Google popup closed or failed.")}
                     />
                 </div>
+
+                <p className="auth-switch-text">
+                    Don't have an account? <Link to="/register" className="auth-link">Sign up here</Link>
+                </p>
             </div>
         </div>
     );

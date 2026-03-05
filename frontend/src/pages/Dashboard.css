@@ -1,0 +1,147 @@
+/* src/pages/Dashboard.css */
+.dashboard-page {
+    padding-top: 40px;
+    padding-bottom: 60px;
+}
+
+.dashboard-header {
+    margin-bottom: 40px;
+}
+
+.dashboard-header h1 {
+    font-size: 2.2rem;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.dashboard-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+@media (min-width: 768px) {
+    .dashboard-grid {
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    .dashboard-card {
+        flex: 1;
+    }
+}
+
+.dashboard-card {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eaeaea;
+}
+
+.dashboard-card h2 {
+    font-size: 1.4rem;
+    margin-bottom: 25px;
+    color: var(--text-dark);
+    border-bottom: 2px solid #f4f7f6;
+    padding-bottom: 10px;
+}
+
+.info-group {
+    margin-bottom: 20px;
+}
+
+.info-group label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.info-group p {
+    font-size: 1.1rem;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.btn-logout-large {
+    margin-top: 20px;
+    background-color: #ffebee;
+    color: #c62828;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.btn-logout-large:hover {
+    background-color: #ffcdd2;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+}
+
+.status-badge.active {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.inactive {
+    background-color: #eeeeee;
+    color: #757575;
+}
+
+.active-subscription h3 {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.billing-cycle {
+    color: var(--text-dark);
+    margin-bottom: 20px;
+}
+
+.perks-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.perks-list li {
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+.inactive-subscription p {
+    color: var(--text-light);
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.btn-upgrade {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.btn-upgrade:hover {
+    background-color: #256629;
+}

@@ -106,3 +106,107 @@
     background-color: #eaeaea;
     margin: 40px 0;
 }
+
+.resource-actions {
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.btn-download {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 14px 28px;
+    border-radius: var(--border-radius);
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.2);
+    transition: all 0.2s ease;
+}
+
+.btn-download:hover {
+    background-color: #256629;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(46, 125, 50, 0.3);
+    color: var(--white);
+}
+
+.no-file-text {
+    color: #d32f2f;
+    background-color: #ffebee;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.free-badge {
+    display: inline-block;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-top: 10px;
+}
+
+.paywall-box {
+    background-color: #fff9c4;
+    /* A soft yellow warning color */
+    border: 1px solid #ffe082;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    text-align: center;
+    margin-top: 20px;
+}
+
+.paywall-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.paywall-box h3 {
+    color: #f57f17;
+    margin-bottom: 10px;
+}
+
+.paywall-box p {
+    color: var(--text-dark);
+    margin-bottom: 20px;
+}
+
+.btn-paywall-login {
+    display: inline-block;
+    background-color: transparent;
+    color: var(--text-dark);
+    border: 2px solid var(--text-dark);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.btn-paywall-login:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.btn-paywall-upgrade {
+    display: inline-block;
+    background-color: #f57f17;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(245, 127, 23, 0.2);
+    transition: all 0.2s ease;
+}
+
+.btn-paywall-upgrade:hover {
+    background-color: #f9a825;
+    transform: translateY(-2px);
+}

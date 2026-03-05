@@ -3,6 +3,10 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
 
+# PostgreSQL FTS Imports
+from django.contrib.postgres.search import SearchVectorField, SearchVector
+from django.contrib.postgres.indexes import GinIndex
+
 class ProductCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=110, unique=True, blank=True)
@@ -45,7 +49,17 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # --- PostgreSQL Full-Text Search Field ---
+    search_vector = SearchVectorField(null=True, blank=True)
+
+    class Meta:
+        # --- GIN Index ---
+        indexes = [
+            GinIndex(fields=['search_vector'], name='product_search_gin'),
+        ]
+
     def save(self, *args, **kwargs):
+        # 1. Handle slug generation
         if not self.slug:
             self.slug = slugify(self.name)
             original_slug = self.slug
@@ -53,7 +67,17 @@ class Product(models.Model):
             while Product.objects.filter(slug=self.slug).exists():
                 self.slug = f"{original_slug}-{counter}"
                 counter += 1
+                
+        # 2. Save the instance first
         super().save(*args, **kwargs)
+        
+        # 3. Calculate and apply the Search Vector weights
+        Product.objects.filter(pk=self.pk).update(
+            search_vector=(
+                SearchVector('name', weight='A') + 
+                SearchVector('description', weight='B')
+            )
+        )
 
     def __str__(self):
         return self.name

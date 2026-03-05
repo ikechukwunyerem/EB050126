@@ -5,7 +5,6 @@ import { AuthContext } from '../context/AuthContext';
 import './Navbar.css';
 
 export default function Navbar() {
-    // Pull the user state and logout function from our global context
     const { user, logout } = useContext(AuthContext);
 
     return (
@@ -20,22 +19,23 @@ export default function Navbar() {
                     <li><Link to="/pricing" className="nav-link">Pricing</Link></li>
                     <li><Link to="/products" className="nav-link">Store</Link></li>
 
-                    {/* If 'user' exists, they are logged in */}
                     {user ? (
                         <>
                             <li><Link to="/cart" className="nav-link cart-link">Cart</Link></li>
                             <li>
-                                <span style={{ marginRight: '15px', fontWeight: 'bold' }}>
+                                <Link to="/dashboard" style={{ marginRight: '15px', fontWeight: 'bold', color: 'var(--primary-color)' }}>
                                     Hi, {user.first_name || user.email.split('@')[0]}
-                                </span>
+                                </Link>
                                 <button onClick={logout} className="nav-button logout-btn">Logout</button>
                             </li>
                         </>
                     ) : (
-                        <li>
-                            {/* For now, this just links to a login page we will build next */}
+                        <li className="auth-buttons">
                             <Link to="/login">
                                 <button className="nav-button login-btn">Sign In</button>
+                            </Link>
+                            <Link to="/register">
+                                <button className="nav-button signup-btn">Sign Up</button>
                             </Link>
                         </li>
                     )}
