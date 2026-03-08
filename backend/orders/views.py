@@ -7,14 +7,17 @@ import uuid
 
 from .models import Order, OrderItem
 from cart.models import Cart
+from userauth.models import Address
 from .serializers import OrderSerializer
 
 class CheckoutAPIView(APIView):
-    # Strictly require users to be logged in to checkout
     permission_classes = [permissions.IsAuthenticated] 
 
     @transaction.atomic
     def post(self, request):
+        # Extract the chosen address from the request
+        address_id = request.data.get('address_id')
+        
         try:
             cart = Cart.objects.get(user=request.user)
         except Cart.DoesNotExist:
@@ -23,19 +26,25 @@ class CheckoutAPIView(APIView):
         if cart.items.count() == 0:
             return Response({'error': 'Cart is empty'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 1. Calculate the final total explicitly to avoid cart manipulation
-        total_amount = sum(item.product.price * item.quantity for item in cart.items.all())
+        # Validate the address belongs to the user
+        address = None
+        if address_id:
+            address = Address.objects.filter(id=address_id, user=request.user).first()
+            if not address:
+                return Response({'error': 'Invalid address selection'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 2. Create the Order securely
+        total_amount = cart.grand_total
+
+        # Create Order with the new shipping_address relation
         order = Order.objects.create(
             user=request.user,
+            shipping_address=address,
             order_number=f"ORD-{uuid.uuid4().hex[:8].upper()}",
             total_amount=total_amount,
             status='pending',
             payment_status='unpaid'
         )
 
-        # 3. Move items from Cart to Order (locking in the historical price)
         for cart_item in cart.items.all():
             OrderItem.objects.create(
                 order=order,
@@ -44,7 +53,6 @@ class CheckoutAPIView(APIView):
                 quantity=cart_item.quantity
             )
 
-        # 4. Empty the Cart
         cart.items.all().delete()
 
         serializer = OrderSerializer(order)

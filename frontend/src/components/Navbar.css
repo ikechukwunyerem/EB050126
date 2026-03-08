@@ -99,3 +99,28 @@
     background-color: var(--primary-color);
     color: white;
 }
+
+/* Additions to src/components/Navbar.css */
+
+.navbar-auth {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    gap: 15px;
+    margin-left: auto;
+    /* Pushes auth buttons to the far right */
+}
+
+/* Ensure the container spaces elements out properly */
+.navbar-container {
+    display: flex;
+    justify-content: flex-start;
+    /* Change from space-between */
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+}
+
+.navbar-logo {
+    margin-right: 20px;
+}

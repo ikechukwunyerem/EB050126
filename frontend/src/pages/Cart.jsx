@@ -7,7 +7,7 @@ import './Cart.css';
 export default function Cart() {
     const [cart, setCart] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchCart();
@@ -30,44 +30,15 @@ export default function Cart() {
         }
     };
 
-    const handleCheckout = async () => {
+    const handleProceedToCheckout = () => {
         const token = localStorage.getItem('access_token');
-
-        // 1. Security check: User must be logged in to checkout
         if (!token) {
             alert("Please sign in to complete your purchase.");
             navigate('/login');
             return;
         }
-
-        setIsCheckingOut(true);
-        const headers = { Authorization: `Bearer ${token}` };
-
-        try {
-            // 2. Convert Cart to Order
-            const orderResponse = await axios.post(
-                'http://localhost:8000/api/checkout/',
-                {},
-                { headers }
-            );
-
-            const orderNumber = orderResponse.data.order_number;
-
-            // 3. Initialize Paystack Payment
-            const paystackResponse = await axios.post(
-                'http://localhost:8000/api/payment/paystack/initialize/',
-                { order_number: orderNumber },
-                { headers }
-            );
-
-            // 4. Redirect the browser to the secure Paystack checkout URL!
-            window.location.href = paystackResponse.data.authorization_url;
-
-        } catch (error) {
-            console.error("Checkout failed:", error);
-            alert(error.response?.data?.error || "Failed to initialize payment. Please try again.");
-            setIsCheckingOut(false);
-        }
+        // Simply route them to the new dedicated checkout page
+        navigate('/checkout');
     };
 
     if (loading) return <div className="container loading-text">Loading cart...</div>;
@@ -87,7 +58,6 @@ export default function Cart() {
             <h1>Shopping Cart</h1>
 
             <div className="cart-layout">
-                {/* Left Column: Cart Items */}
                 <div className="cart-items">
                     {cart.items.map(item => (
                         <div key={item.id} className="cart-item">
@@ -102,7 +72,6 @@ export default function Cart() {
                     ))}
                 </div>
 
-                {/* Right Column: Order Summary */}
                 <div className="cart-summary">
                     <h2>Order Summary</h2>
                     <div className="summary-row">
@@ -115,12 +84,8 @@ export default function Cart() {
                         <span>₦{parseFloat(cart.grand_total).toLocaleString()}</span>
                     </div>
 
-                    <button
-                        className="checkout-btn"
-                        onClick={handleCheckout}
-                        disabled={isCheckingOut}
-                    >
-                        {isCheckingOut ? 'Initializing Secure Payment...' : 'Proceed to Checkout'}
+                    <button className="checkout-btn" onClick={handleProceedToCheckout}>
+                        Proceed to Checkout
                     </button>
                 </div>
             </div>

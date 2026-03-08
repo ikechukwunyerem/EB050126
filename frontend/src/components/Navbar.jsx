@@ -2,6 +2,7 @@
 import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import SearchBar from './SearchBar'; // <-- Import the SearchBar
 import './Navbar.css';
 
 export default function Navbar() {
@@ -16,9 +17,14 @@ export default function Navbar() {
 
                 <ul className="navbar-menu">
                     <li><Link to="/library" className="nav-link">Library</Link></li>
-                    <li><Link to="/pricing" className="nav-link">Pricing</Link></li>
                     <li><Link to="/products" className="nav-link">Store</Link></li>
+                    <li><Link to="/blog" className="nav-link">Blog</Link></li> {/* <-- Added Blog Link */}
+                    <li><Link to="/pricing" className="nav-link">Pricing</Link></li>
+                </ul>
 
+                <SearchBar /> {/* <-- Added SearchBar in the middle */}
+
+                <ul className="navbar-auth">
                     {user ? (
                         <>
                             <li><Link to="/cart" className="nav-link cart-link">Cart</Link></li>

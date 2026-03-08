@@ -23,15 +23,11 @@ from subscriptions.models import SubscriptionPlan, UserSubscription
 User = get_user_model()
 
 class InitializePaystackView(APIView):
-    """Initializes standard e-commerce store orders"""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         order_number = request.data.get('order_number')
         
-        if not order_number:
-            return Response({'error': 'order_number is required'}, status=status.HTTP_400_BAD_REQUEST)
-
         try:
             order = Order.objects.get(
                 order_number=order_number, 
@@ -44,32 +40,29 @@ class InitializePaystackView(APIView):
         url = "https://api.paystack.co/transaction/initialize"
         amount_in_kobo = int(order.total_amount * 100)
         
-        headers = {
-            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
-            "Content-Type": "application/json"
+        # Prepare rich metadata for the Paystack Dashboard
+        metadata = {
+            "transaction_type": "order",
+            "order_id": order.id,
         }
         
+        if order.shipping_address:
+            metadata.update({
+                "recipient": order.shipping_address.recipient_name,
+                "delivery_city": order.shipping_address.city,
+                "delivery_address": order.shipping_address.address_line1
+            })
+
         data = {
             "email": request.user.email,
             "amount": amount_in_kobo,
             "reference": order.order_number,
             "callback_url": f"{settings.FRONTEND_URL}/payment-success",
-            "metadata": {
-                "transaction_type": "order"
-            }
+            "metadata": metadata
         }
 
-        response = requests.post(url, headers=headers, json=data)
-        response_data = response.json()
-
-        if response_data.get('status'):
-            return Response({
-                'authorization_url': response_data['data']['authorization_url'],
-                'access_code': response_data['data']['access_code'],
-                'reference': response_data['data']['reference']
-            }, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': response_data.get('message', 'Paystack initialization failed')}, status=status.HTTP_400_BAD_REQUEST)
+        response = requests.post(url, headers={"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}, json=data)
+        return Response(response.json())
 
 
 class InitializeSubscriptionView(APIView):

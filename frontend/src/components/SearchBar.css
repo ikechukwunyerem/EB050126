@@ -1,0 +1,42 @@
+.search-form {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-light, #f5f5f5);
+    border-radius: var(--border-radius, 8px);
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    transition: border-color 0.2s ease;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 15px;
+    /* Spacing between links and auth buttons */
+}
+
+.search-form:focus-within {
+    border-color: var(--primary-color);
+}
+
+.search-input {
+    border: none;
+    padding: 8px 12px;
+    outline: none;
+    background: transparent;
+    width: 100%;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+
+.search-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.search-btn:hover {
+    background-color: #256629;
+    /* Assuming this is your dark green hover */
+}
