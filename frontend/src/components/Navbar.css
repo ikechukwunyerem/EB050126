@@ -1,4 +1,6 @@
 /* src/components/Navbar.css */
+
+/* --- 1. Main Navbar Container --- */
 .navbar {
     background-color: var(--white);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -6,121 +8,328 @@
     top: 0;
     z-index: 100;
     height: 70px;
-    display: flex;
-    align-items: center;
 }
 
 .navbar-container {
     display: flex;
     justify-content: space-between;
+    /* Pushes brand left, actions right */
     align-items: center;
     width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 100%;
 }
 
-.navbar-logo {
+.navbar-brand {
     font-size: 1.5rem;
     font-weight: bold;
     color: var(--primary-color);
+    text-decoration: none;
 }
 
-.navbar-menu {
+/* --- 2. Center Links (Desktop) --- */
+.navbar-links {
     display: flex;
     list-style: none;
     align-items: center;
     gap: 24px;
+    margin: 0;
+    padding: 0;
 }
 
-.nav-link {
+.navbar-links a {
     font-weight: 500;
     color: var(--text-dark);
+    text-decoration: none;
     transition: color 0.2s ease;
 }
 
-.nav-link:hover {
+.navbar-links a:hover {
     color: var(--primary-color);
 }
 
-.cart-link {
-    background-color: var(--bg-light);
-    padding: 8px 12px;
-    border-radius: var(--border-radius);
-}
-
-.nav-button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: var(--border-radius);
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.nav-button:active {
-    transform: scale(0.98);
-}
-
-.login-btn {
-    background-color: var(--primary-color);
-    color: var(--white);
-}
-
-.login-btn:hover {
-    background-color: #256629;
-}
-
-.logout-btn {
-    background-color: #ffebee;
-    color: #c62828;
-}
-
-.logout-btn:hover {
-    background-color: #ffcdd2;
-}
-
-/* Add to src/components/Navbar.css */
-.auth-buttons {
+/* --- 3. Right Side Actions (Cart & Auth) --- */
+.nav-actions {
     display: flex;
-    gap: 10px;
     align-items: center;
-}
-
-.signup-btn {
-    background-color: transparent;
-    color: var(--primary-color);
-    border: 2px solid var(--primary-color);
-    padding: 8px 16px;
-    border-radius: var(--border-radius);
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.signup-btn:hover {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-/* Additions to src/components/Navbar.css */
-
-.navbar-auth {
-    display: flex;
-    list-style: none;
-    align-items: center;
-    gap: 15px;
-    margin-left: auto;
-    /* Pushes auth buttons to the far right */
-}
-
-/* Ensure the container spaces elements out properly */
-.navbar-container {
-    display: flex;
-    justify-content: flex-start;
-    /* Change from space-between */
-    align-items: center;
-    width: 100%;
     gap: 20px;
 }
 
-.navbar-logo {
-    margin-right: 20px;
+/* Cart Icon & Badge */
+.nav-cart-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.nav-cart-icon:hover {
+    color: var(--primary-color);
+}
+
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    background-color: #ef4444;
+    /* Bright Red */
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 1;
+    border: 2px solid white;
+}
+
+/* Logged-Out Auth Buttons */
+.nav-auth-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-login-link {
+    color: var(--text-dark);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.btn-login-link:hover {
+    color: var(--primary-color);
+}
+
+.btn-register-link {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 8px 16px;
+    border-radius: var(--border-radius, 6px);
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.btn-register-link:hover {
+    background-color: #256629;
+}
+
+/* --- 4. User Dropdown Menu --- */
+.user-dropdown-container {
+    position: relative;
+}
+
+.user-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 4px 8px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.user-dropdown-trigger:hover {
+    background-color: #f3f4f6;
+}
+
+.nav-avatar-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+    border: 2px solid #eaeaea;
+}
+
+.nav-avatar-icon {
+    font-size: 28px;
+    color: #9ca3af;
+    margin-right: 8px;
+}
+
+.nav-user-name {
+    margin-right: 6px;
+    font-size: 0.95rem;
+}
+
+.dropdown-arrow {
+    font-size: 0.7rem;
+    color: #6b7280;
+    transition: transform 0.2s ease-in-out;
+}
+
+.dropdown-arrow.open {
+    transform: rotate(180deg);
+}
+
+/* Dropdown Menu Box */
+.user-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    z-index: 2000;
+    min-width: 200px;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    color: #374151;
+    text-decoration: none;
+    font-size: 0.9rem;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+.dropdown-icon {
+    margin-right: 12px;
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 8px 0;
+}
+
+.logout-btn:hover {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.logout-btn:hover .dropdown-icon {
+    color: #b91c1c;
+}
+
+/* --- 5. Mobile Responsiveness --- */
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dark);
+    padding: 4px;
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: block;
+    }
+
+    /* Hide standard links, convert to dropdown on mobile */
+    .navbar-links {
+        display: none;
+        position: absolute;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        background-color: var(--white);
+        flex-direction: column;
+        padding: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        align-items: flex-start;
+        border-top: 1px solid #eaeaea;
+    }
+
+    .navbar-links.mobile-open {
+        display: flex;
+    }
+
+    /* Hide name on mobile to save space for cart/avatar */
+    .nav-user-name {
+        display: none;
+    }
+}
+
+/* --- 6. Search Bar --- */
+.nav-search-form {
+    display: flex;
+    align-items: center;
+    background-color: #f3f4f6;
+    border-radius: 20px;
+    padding: 6px 14px;
+    margin-left: 10px;
+    border: 1px solid transparent;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+.nav-search-form:focus-within {
+    background-color: var(--white);
+    border-color: var(--primary-color);
+}
+
+.nav-search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    width: 140px;
+    transition: width 0.3s ease;
+}
+
+/* Expands the search bar when the user clicks into it */
+.nav-search-input:focus {
+    width: 200px;
+}
+
+.nav-search-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 2px 0 0 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.nav-search-btn:hover {
+    color: var(--primary-color);
+}
+
+/* Mobile Adjustments for the Search Bar */
+@media (max-width: 768px) {
+    .nav-search-form {
+        margin-left: 0;
+        margin-top: 15px;
+        width: 100%;
+        padding: 10px 14px;
+    }
+
+    .nav-search-input {
+        width: 100%;
+    }
+
+    .nav-search-input:focus {
+        width: 100%;
+        /* Prevents weird resizing on mobile */
+    }
 }

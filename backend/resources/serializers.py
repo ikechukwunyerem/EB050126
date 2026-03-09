@@ -1,6 +1,6 @@
 # resources/serializers.py
 from rest_framework import serializers
-from .models import Resource, Category
+from .models import Resource, Category, HeroSlide
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,3 +18,8 @@ class ResourceSerializer(serializers.ModelSerializer):
             'resource_type', 'access_level', 'status', 
             'file', 'cover_image', 'thumbnail', 'created_at'
         ]
+
+class HeroSlideSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HeroSlide
+        fields = ['id', 'title', 'subtitle', 'image', 'link', 'btn_text']

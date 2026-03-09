@@ -81,6 +81,14 @@ class Resource(models.Model):
         null=True, 
         help_text=_("Generated automatically by background task.")
     )
+    is_free = models.BooleanField(
+        default=False,
+        help_text="Check this box if this resource is free to download without a premium subscription."
+    )
+    is_featured = models.BooleanField(
+        default=False, 
+        help_text="Check this box to showcase this resource on the homepage."
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -129,3 +137,21 @@ class SavedResource(models.Model):
 
     def __str__(self):
         return f"{self.user.email} saved {self.resource.title}"
+
+class HeroSlide(models.Model):
+    title = models.CharField(max_length=200, help_text="Main headline for the slide.")
+    subtitle = models.CharField(max_length=300, blank=True, help_text="Subtext below the headline.")
+    image = models.ImageField(upload_to='hero_slides/', help_text="High-resolution background image.")
+    link = models.CharField(max_length=200, default="/library", help_text="Where the button should go (e.g., /library or /products/1).")
+    btn_text = models.CharField(max_length=50, default="Explore Now", help_text="Text inside the button.")
+    is_active = models.BooleanField(default=True, help_text="Uncheck to hide this slide from the homepage.")
+    display_order = models.PositiveIntegerField(default=0, help_text="Lower numbers appear first.")
+
+    class Meta:
+        ordering = ['display_order']
+        verbose_name = "Hero Slide"
+        verbose_name_plural = "Hero Slides"
+
+    def __str__(self):
+        return self.title
+

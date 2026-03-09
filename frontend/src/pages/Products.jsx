@@ -2,6 +2,7 @@
 import { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import { Link } from "react-router-dom";
 import './Products.css';
 
 export default function Products() {
@@ -38,6 +39,9 @@ export default function Products() {
                 }
             );
 
+            // 🚀 THE MAGIC LINE: Dispatch the event so the Navbar instantly updates
+            window.dispatchEvent(new Event('cartUpdated'));
+
             alert("Added to cart successfully!");
         } catch (error) {
             console.error("Failed to add to cart:", error);
@@ -69,7 +73,9 @@ export default function Products() {
                         </div>
 
                         <div className="product-content">
-                            <h3 className="product-title">{product.name}</h3>
+                            <Link to={`/products/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                <h3 className="product-title">{product.name}</h3>
+                            </Link>
                             <p className="product-price">₦{parseFloat(product.price).toLocaleString()}</p>
 
                             <button

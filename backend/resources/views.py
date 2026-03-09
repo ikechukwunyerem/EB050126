@@ -1,7 +1,7 @@
 # resources/views.py
-from rest_framework import viewsets, permissions
-from .models import Resource, Category
-from .serializers import ResourceSerializer, CategorySerializer
+from rest_framework import viewsets, permissions, generics
+from .models import Resource, Category, HeroSlide
+from .serializers import ResourceSerializer, CategorySerializer, HeroSlideSerializer
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
@@ -15,3 +15,9 @@ class ResourceViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         # Only expose published resources to the frontend
         return Resource.objects.filter(status='published').order_by('-created_at')
+
+class HeroSlideListView(generics.ListAPIView):
+    """Fetches all active slides for the homepage."""
+    queryset = HeroSlide.objects.filter(is_active=True).order_by('display_order')
+    serializer_class = HeroSlideSerializer
+    permission_classes = [permissions.AllowAny] # Anyone can see the homepage

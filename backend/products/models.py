@@ -45,6 +45,11 @@ class Product(models.Model):
     # Assets for background processing later
     cover_image = models.ImageField(upload_to='products/covers/originals/', blank=True, null=True)
     thumbnail = models.ImageField(upload_to='products/covers/thumbnails/', blank=True, null=True)
+
+    is_featured = models.BooleanField(
+        default=False, 
+        help_text="Check this box to showcase this product on the homepage."
+    )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

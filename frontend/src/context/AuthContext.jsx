@@ -1,42 +1,64 @@
 // src/context/AuthContext.jsx
 import { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
-// 1. Create the Context
 export const AuthContext = createContext();
 
-// 2. Create the Provider Component
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null); // NEW: Store the rich profile globally
     const [loading, setLoading] = useState(true);
 
-    // Check if the user is already logged in when they open the app
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-        setLoading(false);
+        const initializeAuth = async () => {
+            const token = localStorage.getItem('access_token');
+            const storedUser = localStorage.getItem('user');
+
+            if (token && storedUser) {
+                setUser(JSON.parse(storedUser));
+                // Fetch the rich profile (with avatar) on initial load
+                try {
+                    const res = await axios.get('http://localhost:8000/api/auth/profile/', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    setProfile(res.data);
+                } catch (error) {
+                    console.error("Failed to fetch global profile", error);
+                }
+            }
+            setLoading(false);
+        };
+        initializeAuth();
     }, []);
 
-    // Function to call when login is successful
-    const login = (userData, tokens) => {
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
+    const login = async (userData, tokens) => {
         localStorage.setItem('access_token', tokens.access);
         localStorage.setItem('refresh_token', tokens.refresh);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+
+        // Fetch profile immediately after a fresh login
+        try {
+            const res = await axios.get('http://localhost:8000/api/auth/profile/', {
+                headers: { Authorization: `Bearer ${tokens.access}` }
+            });
+            setProfile(res.data);
+        } catch (error) {
+            console.error("Failed to fetch profile during login", error);
+        }
     };
 
-    // Function to clear data on logout
     const logout = () => {
-        setUser(null);
-        localStorage.removeItem('user');
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        setUser(null);
+        setProfile(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, profile, login, logout, loading, setProfile }}>
             {children}
         </AuthContext.Provider>
     );
-}
+};

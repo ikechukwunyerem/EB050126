@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from userauth.views import GoogleLoginView, MyTokenObtainPairView, RegisterView, AddressListCreateView, AddressDetailView, UserProfileView
-from resources.views import ResourceViewSet, CategoryViewSet
+from resources.views import ResourceViewSet, CategoryViewSet, HeroSlideListView
 from cart.views import CartAPIView
 from products.views import ProductViewSet, ProductCategoryViewSet
 from orders.views import CheckoutAPIView
@@ -51,4 +51,5 @@ urlpatterns = [
     
     # Domain Endpoints (Resources & Products handled by Router)
     path('', include(router.urls)),
+    path('storefront/slides/', HeroSlideListView.as_view(), name='hero-slides'),
 ]
