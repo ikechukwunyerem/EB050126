@@ -162,11 +162,28 @@ CORS_ALLOWED_ORIGINS = [
     if o.strip()
 ]
 
-# --- django-bleach defaults (overridden per-field where needed) ---
+# --- django-bleach global defaults (used by simple fields e.g. comments) ---
 BLEACH_ALLOWED_TAGS = ['p', 'b', 'i', 'u', 'em', 'strong', 'a', 'ul', 'ol', 'li']
 BLEACH_ALLOWED_ATTRIBUTES = {'a': ['href', 'title', 'rel']}
 BLEACH_STRIP_TAGS = True
 BLEACH_STRIP_COMMENTS = True
+
+# --- Blog-specific bleach config (richer tag set for rich-text editor output) ---
+# Issue #7: centralised here so blog/models.py imports from settings rather
+# than defining its own module-level constants that drift out of sync.
+BLOG_BLEACH_ALLOWED_TAGS = [
+    'p', 'br', 'strong', 'em', 'u', 's', 'blockquote', 'pre', 'code',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'ul', 'ol', 'li',
+    'a', 'img',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    'hr', 'span', 'div',
+]
+BLOG_BLEACH_ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title', 'target', 'rel'],
+    'img': ['src', 'alt', 'title', 'width', 'height'],
+    '*': ['class'],
+}
 
 # --- Integrations ---
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
@@ -219,3 +236,42 @@ REST_FRAMEWORK.update({
         'rest_framework.filters.OrderingFilter',
     ],
 })
+
+
+# --- Celery Beat Schedule ---
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    # Checks every 5 minutes for newsletter issues whose scheduled_send_time has passed
+    'schedule-pending-newsletters': {
+        'task': 'schedule_pending_newsletters_task',
+        'schedule': crontab(minute='*/5'),
+    },
+}
+
+
+# --- Billing / Invoices ---
+INVOICE_COMPANY_NAME = os.getenv('INVOICE_COMPANY_NAME', 'Efiko')
+INVOICE_COMPANY_ADDRESS_LINE1 = os.getenv('INVOICE_COMPANY_ADDRESS_LINE1', '')
+INVOICE_COMPANY_ADDRESS_LINE2 = os.getenv('INVOICE_COMPANY_ADDRESS_LINE2', '')
+INVOICE_COMPANY_PHONE = os.getenv('INVOICE_COMPANY_PHONE', '')
+INVOICE_COMPANY_EMAIL = os.getenv('INVOICE_COMPANY_EMAIL', '')
+INVOICE_COMPANY_WEBSITE = os.getenv('INVOICE_COMPANY_WEBSITE', '')
+INVOICE_COMPANY_LOGO_URL = os.getenv('INVOICE_COMPANY_LOGO_URL', None)
+INVOICE_TERMS_AND_CONDITIONS = os.getenv('INVOICE_TERMS_AND_CONDITIONS', '')
+INVOICE_FOOTER_NOTE = os.getenv('INVOICE_FOOTER_NOTE', '')
+
+# --- Search ---
+# Minimum PostgreSQL FTS rank score to include a result (filters near-zero matches)
+SEARCH_MIN_RANK = 0.05
+# Maximum results returned per content type in global search
+SEARCH_RESULTS_PER_TYPE = 10
+# How long (seconds) to cache identical search queries in Redis
+SEARCH_CACHE_TTL = 60
+
+# --- Django Cache (Redis) ---
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+    }
+}

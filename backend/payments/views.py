@@ -22,6 +22,7 @@ from rest_framework.views import APIView
 from cart.models import Cart
 from orders.models import Order
 from subscriptions.models import SubscriptionPlan, UserSubscription
+from billing.services import create_and_save_invoice_from_transaction
 from .models import PaymentTransaction, WebhookLog
 
 logger = logging.getLogger(__name__)
@@ -392,6 +393,15 @@ class PaystackWebhookView(APIView):
 
         logger.info('Order %s marked as paid. Cart cleared.', order.order_number)
 
+        # Generate and persist invoice for this order payment
+        tx = PaymentTransaction.objects.filter(
+            gateway_reference=reference, purpose='order'
+        ).first()
+        if tx:
+            transaction.on_commit(
+                lambda: create_and_save_invoice_from_transaction(tx.pk)
+            )
+
     def _handle_subscription(self, data, metadata, reference):
         """
         Activate or renew the user's subscription.
@@ -429,3 +439,12 @@ class PaystackWebhookView(APIView):
             'Subscription activated for %s — plan: %s, expires: %s',
             user.email, plan.name, end_date,
         )
+
+        # Generate and persist invoice for this subscription payment
+        tx = PaymentTransaction.objects.filter(
+            gateway_reference=reference, purpose='subscription'
+        ).first()
+        if tx:
+            transaction.on_commit(
+                lambda: create_and_save_invoice_from_transaction(tx.pk)
+            )

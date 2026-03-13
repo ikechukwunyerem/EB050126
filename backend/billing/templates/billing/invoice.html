@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice {{ invoice.invoice_number }}</title>
+    <style>
+        /* --- Reset --- */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+            background: #fff;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* --- Header --- */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #1a56db;
+        }
+
+        .company-details h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a56db;
+            margin-bottom: 6px;
+        }
+
+        .company-details p {
+            line-height: 1.7;
+            color: #555;
+        }
+
+        .invoice-meta {
+            text-align: right;
+        }
+
+        .invoice-meta h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .invoice-meta table {
+            margin-left: auto;
+        }
+
+        .invoice-meta td {
+            padding: 2px 0 2px 16px;
+            color: #555;
+        }
+
+        .invoice-meta td:first-child {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* --- Status badge --- */
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-draft {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .status-issued {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-overdue {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-cancelled {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .status-refunded {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-partially_paid {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* --- Addresses --- */
+        .addresses {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 36px;
+        }
+
+        .address-block h3 {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .address-block p {
+            line-height: 1.7;
+            color: #444;
+        }
+
+        /* --- Line items table --- */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+
+        .items-table thead tr {
+            background: #1a56db;
+            color: #fff;
+        }
+
+        .items-table thead th {
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .items-table thead th:last-child,
+        .items-table tbody td:last-child,
+        .items-table tfoot td:last-child {
+            text-align: right;
+        }
+
+        .items-table thead th:nth-child(2),
+        .items-table tbody td:nth-child(2) {
+            text-align: center;
+        }
+
+        .items-table tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .items-table tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #444;
+        }
+
+        /* --- Totals --- */
+        .totals-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 36px;
+        }
+
+        .totals-table {
+            width: 280px;
+        }
+
+        .totals-table td {
+            padding: 5px 0;
+        }
+
+        .totals-table td:last-child {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .totals-table .divider td {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+        }
+
+        .totals-table .total-row td {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+            padding-top: 8px;
+        }
+
+        .totals-table .balance-row td {
+            color: #1a56db;
+            font-weight: 600;
+        }
+
+        /* --- Footer notes --- */
+        .invoice-footer {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #888;
+            line-height: 1.7;
+        }
+
+        .invoice-footer .terms {
+            margin-bottom: 12px;
+        }
+
+        /* --- Print styles --- */
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Print button (hidden on actual print) -->
+    <div class="no-print" style="text-align:right; margin-bottom:24px;">
+        <button onclick="window.print()"
+            style="background:#1a56db;color:#fff;border:none;padding:10px 22px;border-radius:6px;font-size:14px;cursor:pointer;font-weight:600;">
+            Print / Save as PDF
+        </button>
+    </div>
+
+    <!-- Header -->
+    <div class="invoice-header">
+        <div class="company-details">
+            {% if invoice.company_logo_url %}
+            <img src="{{ invoice.company_logo_url }}" alt="{{ invoice.company_name }}"
+                style="height:48px;margin-bottom:12px;">
+            {% else %}
+            <h1>{{ invoice.company_name }}</h1>
+            {% endif %}
+            <p>{{ invoice.company_address_line1 }}</p>
+            {% if invoice.company_address_line2 %}<p>{{ invoice.company_address_line2 }}</p>{% endif %}
+            {% if invoice.company_phone %}<p>Tel: {{ invoice.company_phone }}</p>{% endif %}
+            {% if invoice.company_email %}<p>{{ invoice.company_email }}</p>{% endif %}
+        </div>
+
+        <div class="invoice-meta">
+            <h2>Invoice</h2>
+            <table>
+                <tr>
+                    <td>Invoice #</td>
+                    <td><strong>{{ invoice.invoice_number }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Issue Date</td>
+                    <td>{{ invoice.issue_date }}</td>
+                </tr>
+                {% if invoice.due_date %}<tr>
+                    <td>Due Date</td>
+                    <td>{{ invoice.due_date }}</td>
+                </tr>{% endif %}
+                <tr>
+                    <td>Status</td>
+                    <td>
+                        <span class="status-badge status-{{ invoice.status }}">{{ invoice.status|title }}</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bill To / Bill From -->
+    <div class="addresses">
+        <div class="address-block">
+            <h3>Bill To</h3>
+            <p><strong>{{ invoice.customer_name }}</strong></p>
+            <p>{{ invoice.customer_email }}</p>
+            {% if invoice.customer_address_line1 %}<p>{{ invoice.customer_address_line1 }}</p>{% endif %}
+            {% if invoice.customer_address_line2 %}<p>{{ invoice.customer_address_line2 }}</p>{% endif %}
+            {% if invoice.customer_city %}
+            <p>
+                {{ invoice.customer_city }}{% if invoice.customer_state %}, {{ invoice.customer_state }}{% endif %}
+                {% if invoice.customer_postal_code %} {{ invoice.customer_postal_code }}{% endif %}
+            </p>
+            {% endif %}
+            {% if invoice.customer_country %}<p>{{ invoice.customer_country }}</p>{% endif %}
+        </div>
+    </div>
+
+    <!-- Line Items -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ invoice.currency }} {{ item.unit_price }}</td>
+                <td>{{ invoice.currency }} {{ item.total_price }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align:center;color:#aaa;padding:20px;">No items.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="totals-wrapper">
+        <table class="totals-table">
+            <tr>
+                <td>Subtotal</td>
+                <td>{{ invoice.currency }} {{ invoice.subtotal_amount }}</td>
+            </tr>
+            {% if invoice.discount_amount and invoice.discount_amount != "0.00" %}
+            <tr>
+                <td>Discount</td>
+                <td>– {{ invoice.currency }} {{ invoice.discount_amount }}</td>
+            </tr>
+            {% endif %}
+            {% if invoice.tax_amount and invoice.tax_amount != "0.00" %}
+            <tr>
+                <td>Tax</td>
+                <td>{{ invoice.currency }} {{ invoice.tax_amount }}</td>
+            </tr>
+            {% endif %}
+            <tr class="divider">
+                <td></td>
+                <td></td>
+            </tr>
+            <tr class="total-row">
+                <td>Total</td>
+                <td>{{ invoice.currency }} {{ invoice.total_amount }}</td>
+            </tr>
+            <tr>
+                <td>Amount Paid</td>
+                <td>{{ invoice.currency }} {{ invoice.amount_paid }}</td>
+            </tr>
+            <tr class="balance-row">
+                <td><strong>Balance Due</strong></td>
+                <td><strong>{{ invoice.currency }} {{ invoice.balance_due }}</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="invoice-footer">
+        {% if invoice.terms_and_conditions %}
+        <div class="terms">
+            <strong>Terms &amp; Conditions</strong><br>
+            {{ invoice.terms_and_conditions }}
+        </div>
+        {% endif %}
+        {% if invoice.notes %}
+        <div><strong>Notes:</strong> {{ invoice.notes }}</div>
+        {% endif %}
+        {% if invoice.footer_note %}
+        <div style="margin-top:8px;">{{ invoice.footer_note }}</div>
+        {% endif %}
+    </div>
+
+</body>
+
+</html>

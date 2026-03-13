@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ newsletter_subject }} – {{ site_name }}</title>
+    <style>
+        /* Reset */
+        body,
+        table,
+        td,
+        a {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+
+        table,
+        td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+
+        img {
+            -ms-interpolation-mode: bicubic;
+            border: 0;
+            outline: none;
+            text-decoration: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f7;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #333333;
+        }
+
+        .wrapper {
+            width: 100%;
+            background-color: #f4f4f7;
+            padding: 40px 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Header */
+        .header {
+            background-color: #1a56db;
+            padding: 32px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        /* Newsletter body — injected HTML from NewsletterIssue.html_content */
+        .newsletter-body {
+            padding: 40px 40px 32px;
+            font-size: 16px;
+            line-height: 1.7;
+            color: #4a4a4a;
+        }
+
+        .newsletter-body p {
+            margin: 0 0 16px;
+        }
+
+        .newsletter-body h2 {
+            color: #222222;
+            font-size: 20px;
+            margin: 24px 0 12px;
+        }
+
+        .newsletter-body h3 {
+            color: #222222;
+            font-size: 17px;
+            margin: 20px 0 10px;
+        }
+
+        .newsletter-body a {
+            color: #1a56db;
+            text-decoration: underline;
+        }
+
+        .newsletter-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        .newsletter-body ul,
+        .newsletter-body ol {
+            padding-left: 20px;
+            margin: 0 0 16px;
+        }
+
+        .newsletter-body li {
+            margin-bottom: 6px;
+        }
+
+        .newsletter-body blockquote {
+            border-left: 4px solid #1a56db;
+            margin: 16px 0;
+            padding: 8px 16px;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #f4f4f7;
+            padding: 24px 40px;
+            text-align: center;
+            border-top: 1px solid #e8e8ef;
+        }
+
+        .footer p {
+            margin: 0 0 8px;
+            font-size: 13px;
+            color: #888888;
+            line-height: 1.5;
+        }
+
+        .footer a {
+            color: #888888;
+            text-decoration: underline;
+        }
+
+        .footer .unsubscribe {
+            margin-top: 12px;
+        }
+
+        /* Responsive */
+        @media only screen and (max-width: 620px) {
+            .container {
+                border-radius: 0 !important;
+            }
+
+            .header,
+            .newsletter-body,
+            .footer {
+                padding-left: 24px !important;
+                padding-right: 24px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="container">
+
+            <!-- Header -->
+            <div class="header">
+                <h1>{{ site_name }}</h1>
+            </div>
+
+            <!-- Newsletter content — rendered from NewsletterIssue.html_content -->
+            <div class="newsletter-body">
+                {{ newsletter_body_html|safe }}
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p>
+                    You are receiving this because you subscribed to the
+                    <strong>{{ site_name }}</strong> newsletter{% if subscriber_email %} as
+                    <strong>{{ subscriber_email }}</strong>{% endif %}.
+                </p>
+                <p>
+                    Questions? Contact us at
+                    <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
+                </p>
+                <p class="unsubscribe">
+                    Don't want to receive these emails?
+                    <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+                </p>
+                <p>&copy; {{ current_year }} {{ site_name }}. All rights reserved.</p>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>

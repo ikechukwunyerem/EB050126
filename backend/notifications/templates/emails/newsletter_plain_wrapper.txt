@@ -1,0 +1,14 @@
+{{ newsletter_subject }}
+{{ site_name }}
+================================================================================
+
+{{ newsletter_body_plain }}
+
+--------------------------------------------------------------------------------
+You are receiving this because you subscribed to the {{ site_name }} newsletter{% if subscriber_email %} as {{ subscriber_email }}{% endif %}.
+
+Questions? Contact us at {{ support_email }}.
+
+To unsubscribe, visit: {{ unsubscribe_url }}
+
+© {{ current_year }} {{ site_name }}. All rights reserved.

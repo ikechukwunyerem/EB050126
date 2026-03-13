@@ -14,7 +14,7 @@ from engagement.views import (
     EngagementSummaryView,
 )
 from subscriptions.views import SubscriptionPlanListView, UserSubscriptionStatusView, UserSubscriptionHistoryView
-from search.views import GlobalSearchView
+from search.views import GlobalSearchView, SavedSearchListCreateView, SavedSearchDeleteView
 from blog.views import PostViewSet
 
 # ---------------------------------------------------------------------------
@@ -72,8 +72,14 @@ urlpatterns = [
     path('subscriptions/my-status/', UserSubscriptionStatusView.as_view(), name='my_subscription_status'),
     path('subscriptions/history/', UserSubscriptionHistoryView.as_view(), name='subscription_history'),
 
+    # --- Newsletter ---
+    path('newsletter/', include('newsletter.urls', namespace='newsletter')),
+    path('billing/', include('billing.urls', namespace='billing')),
+
     # --- Search ---
     path('search/', GlobalSearchView.as_view(), name='global_search'),
+    path('search/saved/', SavedSearchListCreateView.as_view(), name='saved_search_list'),
+    path('search/saved/<int:pk>/', SavedSearchDeleteView.as_view(), name='saved_search_delete'),
 
     # --- Domain ViewSets (resources, products, blog, categories) ---
     path('', include(router.urls)),
