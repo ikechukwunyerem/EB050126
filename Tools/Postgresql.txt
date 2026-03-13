@@ -1,0 +1,80 @@
+Linux:   dnf install postgresql-server postgresql-contrib -y
+         postgresql-setup --initdb
+         systemctl start postgresql
+         systemctl enable postgresql
+         systemctl status PostgreSQL
+
+	sudo dnf install -y postgresql-server postgresql-contrib
+	sudo postgresql-setup --initdb
+	sudo systemctl enable --now postgresql 
+
+
+Login to Database:   (.venv) [root@IkeMaduekwe-PC frontend]# su - postgres
+                     [postgres@IkeMaduekwe-PC ~]$ psql
+
+Change postgress user password: [postgres@IkeMaduekwe-PC ~]$ psql -c "ALTER USER postgres PASSWORD 'mugsy123';"
+Change user password Inside psql shell (interactive): postgres=# ALTER ROLE uloit_admin PASSWORD 'mugsy123';
+
+[postgres@IkeMaduekwe-PC ~]$ psql
+
+Create a database user/Database: postgres=# CREATE USER uloit_admin WITH PASSWORD 'mugsy123'; 
+                                 postgres=# CREATE DATABASE uloit_db OWNER uloit_admin;
+                                 postgres=# GRANT ALL PRIVILEGES ON DATABASE uloit_db TO uloit_admin;
+                                 ALTER ROLE uloit_admin SET client_encoding TO 'utf8';
+                                 ALTER ROLE uloit_admin SET default_transaction_isolation TO 'read committed';
+                                 ALTER ROLE uloit_admin SET timezone TO 'UTC';
+                                 GRANT ALL ON SCHEMA public TO uloit_admin;
+
+                                 CREATE USER admin WITH PASSWORD 'mugsy123'; 
+                                 CREATE DATABASE efiko_db OWNER admin;
+                                 GRANT ALL PRIVILEGES ON DATABASE efiko_db TO admin;
+                                 ALTER ROLE admin SET client_encoding TO 'utf8';
+                                 ALTER ROLE admin SET default_transaction_isolation TO 'read committed';
+                                 ALTER ROLE admin SET timezone TO 'UTC';
+                                 GRANT ALL ON SCHEMA public TO admin;
+
+Connect directly to the main database:[root@IkeMaduekwe-PC backend]# psql -U uloit_admin -d uloit_db -W
+Connect directly to the a particular database: \c postgres
+
+To list roles:\du
+Drop database: DROP DATABASE uloit_db;
+REVOKE ALL ON SCHEMA public FROM uloit_admin;
+Drop any unwanted role:DROP ROLE uloit_admin;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+By default, PostgreSQL uses an authentication method called peer which might not work easily with Django because Django connects to PostgreSQL using database username, password over a TCP/IP connection (localhost or 127.0.0.1). This requires password-based authentication, not peer. So if your PostgreSQL is still using peer for local connections, Django will fail to connect with errors like: FATAL:  Peer authentication failed for user "uloit_admin"
+
+Open the config file: vi /var/lib/pgsql/data/pg_hba.conf
+Change peer and ident to scram-sha-256: 
+
+# "local" is for Unix domain socket connections only
+local   all             all                                     scram-sha-256
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            scram-sha-256
+# IPv6 local connections:
+host    all             all             ::1/128                 scram-sha-256
+
+Verify PostgreSQL user (uloit_admin) is using scram-sha-256 for password storage.
+[root@IkeMaduekwe-PC Uloit]# su - postgres
+[postgres@IkeMaduekwe-PC ~]$ psql
+postgres=# SELECT rolname, rolpassword FROM pg_authid WHERE rolname = 'uloit_admin';
+   rolname   |                                                              rolpassword                                                              
+-------------+---------------------------------------------------------------------------------------------------------------------------------------
+ uloit_admin | SCRAM-SHA-256$4096:3CIFDOrA1KfNhFnNSVmw5w==$BVVXpV+GZR1G1JfUjiYgI+qC9dgGRlSoe88VCOkGtZk=:p6vmN3svSGxN1ZDreHF0q+/5uhdCx5gdWG95oWQ1efg=
+(1 row)
+postgres=# 
+
+(.venv) [root@IkeMaduekwe-PC frontend]# systemctl restart postgresql

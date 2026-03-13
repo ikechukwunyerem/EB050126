@@ -10,7 +10,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from backend/.env
 load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me")
+# FIX #8: SECRET_KEY now raises a hard error if unset rather than silently
+# falling back to 'change-me', which could slip into production undetected.
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError(
+        "DJANGO_SECRET_KEY environment variable is not set. "
+        "Set it in your .env file or deployment environment."
+    )
+
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("1", "true", "yes", "on")
 
 ALLOWED_HOSTS = [
@@ -35,9 +43,13 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "mptt",
+    "django_bleach",
+    "imagekit",
+    "django_filters",
 
     # Local Apps
     "userauth",
+    "notifications",
     "resources",
     "engagement",
     "subscriptions",
@@ -45,8 +57,8 @@ INSTALLED_APPS = [
     "products",
     "cart",
     "orders",
-    "blog",    
-    "search", 
+    "blog",
+    "search",
 ]
 
 MIDDLEWARE = [
@@ -150,8 +162,60 @@ CORS_ALLOWED_ORIGINS = [
     if o.strip()
 ]
 
+# --- django-bleach defaults (overridden per-field where needed) ---
+BLEACH_ALLOWED_TAGS = ['p', 'b', 'i', 'u', 'em', 'strong', 'a', 'ul', 'ol', 'li']
+BLEACH_ALLOWED_ATTRIBUTES = {'a': ['href', 'title', 'rel']}
+BLEACH_STRIP_TAGS = True
+BLEACH_STRIP_COMMENTS = True
+
 # --- Integrations ---
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY", "")
 PAYSTACK_PUBLIC_KEY = os.getenv("PAYSTACK_PUBLIC_KEY", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
+# --- Email ---
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Efiko <noreply@efiko.com>")
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+# Production: switch EMAIL_BACKEND to "anymail.backends.mailgun.EmailBackend" (or similar)
+# and set the relevant ANYMAIL settings via environment variables.
+
+# --- Notifications app ---
+APP_DISPLAY_NAME = os.getenv("APP_DISPLAY_NAME", "Efiko")
+SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "support@efiko.com")
+PASSWORD_RESET_TIMEOUT_HOURS = 1  # Mirrors Django's PASSWORD_RESET_TIMEOUT (3 days default → override to 1 hour)
+PASSWORD_RESET_TIMEOUT = 3600     # Django uses seconds; 3600 = 1 hour
+
+# --- DRF throttle rates (applied to ResendVerification & RequestPasswordReset views) ---
+# Merged into REST_FRAMEWORK dict — defined separately here so they're easy to tune.
+REST_FRAMEWORK.update({
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "email_resend": os.getenv("THROTTLE_EMAIL_RESEND", "5/hour"),
+        "password_reset": os.getenv("THROTTLE_PASSWORD_RESET", "5/hour"),
+    },
+})
+
+# --- Email template directories ---
+# Tells Django's template engine where to find the notifications email templates.
+# Add the notifications/templates directory to TEMPLATES[0]['DIRS'].
+TEMPLATES[0]["DIRS"] = [BASE_DIR / "notifications" / "templates"]
+
+# --- django-imagekit ---
+# Thumbnails are generated on first request and stored in MEDIA_ROOT.
+# IMAGEKIT_CACHEFILE_DIR controls the subdirectory within MEDIA_ROOT.
+IMAGEKIT_CACHEFILE_DIR = 'CACHE/images'
+# Use Redis for the imagekit async strategy (consistent with existing Celery/Redis setup)
+IMAGEKIT_DEFAULT_CACHEFILE_STRATEGY = 'imagekit.cachefiles.strategies.Optimistic'
+
+# --- django-filter ---
+# Makes DjangoFilterBackend available globally in DRF viewsets
+REST_FRAMEWORK.update({
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+})

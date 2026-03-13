@@ -1,0 +1,6 @@
+dnf update -y
+dnf install python3-devel gcc -y
+
+[root@IkeMaduekwe-PC Uloit]# redis-cli ping
+PONG
+[root@IkeMaduekwe-PC Uloit]# ps aux | grep postgres

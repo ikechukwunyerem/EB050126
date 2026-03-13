@@ -1,0 +1,5 @@
+# First, install the system dependencies required by WeasyPrint
+sudo dnf install pango cairo libffi-devel
+
+# Then, install the Python package
+pip install WeasyPrint

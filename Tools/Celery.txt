@@ -1,0 +1,163 @@
+Start celery: celery -A core worker -l info
+
+For production, always run Celery as a non-root user.
+Run Celery as a Non-Root User:  useradd -m celeryuser
+                                chown -R celeryuser /root/Project/backend
+Run as the new user: -u celeryuser bash -c 'source /root/Project/backend/.venv/bin/activate && celery -A uloit worker -l info'
+
+
+
+
+
+
+
+
+Step 1: Install Celery and a Message Broker
+Celery requires a "message broker" to handle the communication between your Django app and the Celery workers. Redis is the most common and recommended choice.
+
+Install Python packages:
+pip install celery redis
+
+Install Redis: You need to have a Redis server running on your machine.
+
+Step 2: Configure Celery in Your Django Project
+You need to tell Django how to communicate with Celery and Redis.
+
+Create core/celery.py:
+Create a new file named celery.py inside your main project directory (core/, where your settings.py is).
+
+# core/celery.py
+import os
+from celery import Celery
+
+# Set the default Django settings module for the 'celery' program.
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+
+app = Celery('core')
+
+# Using a string here means the worker doesn't have to serialize
+# the configuration object to child processes.
+# - namespace='CELERY' means all celery-related configuration keys
+#   should have a `CELERY_` prefix.
+app.config_from_object('django.conf:settings', namespace='CELERY')
+
+# Load task modules from all registered Django apps.
+app.autodiscover_tasks()
+
+Import the Celery App in core/__init__.py:
+This ensures that the Celery app is loaded when Django starts.
+
+# core/__init__.py
+from .celery import app as celery_app
+
+__all__ = ('celery_app',)
+
+Update core/settings.py:
+Add the following configuration at the bottom of your main settings file (e.g., base.py).
+
+# core/settings/base.py
+
+# ... existing settings ...
+
+# CELERY SETTINGS
+# ------------------------------------------------------------------------------
+# This configuration assumes Redis is running on the default port on localhost.
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC' # Or your project's timezone
+
+Step 3: Configure Email for Local Testing
+To test email sending without a real SMTP server, you can configure Django to print emails to the console. This is perfect for development.
+
+Add this line to your local settings file (core/settings/base.py or a dedicated local.py):
+
+# core/settings/base.py
+
+# ... existing settings ...
+
+# EMAIL CONFIGURATION
+# ------------------------------------------------------------------------------
+# During development, print emails to the console.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+Step 4: Running and Testing the Application
+Now you're ready to run everything and test the registration flow.
+
+Open two separate terminal windows.
+
+In Terminal 1: Start the Celery Worker
+Navigate to your project's root directory (where manage.py is) and run:
+
+celery -A core worker -l info
+
+You should see the worker start up and discover your tasks (send_verification_email_task, etc.).
+
+In Terminal 2: Start the Django Development Server
+In the other terminal, run your Django server as usual:
+
+python manage.py runserver
+
+Test User Registration:
+
+Use a tool like Postman, Insomnia, or curl to send a POST request to your registration endpoint: http://127.0.0.1:8000/api/auth/register/
+
+Set the Content-Type header to application/json.
+
+Provide the following JSON in the request body:
+
+{
+    "email": "testuser@example.com",
+    "password": "a-very-strong-password-123",
+    "password2": "a-very-strong-password-123"
+}
+
+Check the result:
+
+You should get a 201 Created response from your Django server.
+
+In the Celery worker terminal (Terminal 1), you will see logs indicating that send_verification_email_task was received and executed.
+
+In the Django server terminal (Terminal 2), you will see the full content of the verification email printed to the console, thanks to the console.EmailBackend. You can copy the verification link from here and paste it into your browser to verify the account.
+
+Test User Login:
+
+After verifying the email, send a POST request to your login endpoint (/api/auth/token/) with the email and password you just registered. You should receive your JWT access and refresh tokens.
+
+Testing Google Login Locally
+Testing OAuth flows like Google Login locally is tricky because Google needs to send the user back to a public, HTTPS-enabled URL. Your localhost:8000 is not public. The standard solution is to use ngrok.
+
+Install ngrok: Download and install ngrok.
+
+Expose your local server: In a new terminal, run:
+
+ngrok http 8000
+
+Get your public URL: ngrok will give you a public URL like https://<random-string>.ngrok-free.app. Copy this HTTPS URL.
+
+Update Google Cloud Console:
+
+Go to your Google Cloud Console.
+
+Navigate to "APIs & Services" -> "Credentials".
+
+Click on your "OAuth 2.0 Client ID".
+
+Under "Authorized redirect URIs", click "ADD URI" and paste your full ngrok URL. Important: The redirect_uri you send to Google must exactly match one of the URIs listed here.
+
+Update Django Settings:
+
+In your settings.py, temporarily set FRONTEND_REDIRECT_URI to your ngrok URL.
+
+# settings.py
+FRONTEND_REDIRECT_URI = "https://<random-string>.ngrok-free.app/your-frontend-callback-path"
+
+Test the Flow:
+
+Now you can hit your /api/auth/google/login/ endpoint. It will redirect you to Google.
+
+After you log in with Google, it will redirect you back to your ngrok URL, which forwards the request (with the code and state) to your local Django server.
+
+Your GoogleTokenExchangeApi view will then handle the request as expected.

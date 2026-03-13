@@ -1,0 +1,7 @@
+dnf install redis -y
+systemctl enable redis
+systemctl start redis
+confirm Redis is working by running: redis-cli ping
+
+This deletes all keys in Redis — only do this if Redis isn't being used for other things (like caching or session storage):
+redis-cli flushall

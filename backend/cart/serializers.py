@@ -1,17 +1,21 @@
 # cart/serializers.py
 from rest_framework import serializers
 from .models import Cart, CartItem
-from products.models import Product
+
 
 class CartItemSerializer(serializers.ModelSerializer):
-    # We pull specific fields from the related Product model so React doesn't have to guess
     product_name = serializers.ReadOnlyField(source='product.name')
     product_price = serializers.ReadOnlyField(source='product.price')
+    product_type = serializers.ReadOnlyField(source='product.product_type')
     subtotal = serializers.ReadOnlyField()
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'product_name', 'product_price', 'quantity', 'subtotal']
+        fields = [
+            'id', 'product', 'product_name', 'product_price',
+            'product_type', 'quantity', 'subtotal',
+        ]
+
 
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
@@ -20,4 +24,6 @@ class CartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ['id', 'user', 'session_key', 'items', 'total_items', 'grand_total']
+        # Issue #13: user and session_key removed — both are internal identifiers
+        # that have no value to the frontend and session_key is security-sensitive.
+        fields = ['id', 'items', 'total_items', 'grand_total']

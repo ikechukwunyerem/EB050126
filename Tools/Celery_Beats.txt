@@ -1,0 +1,61 @@
+celery -A core beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+Step 2: Schedule the Task with Celery Beat
+Now that we have the task, we need to tell Celery Beat to run it automatically. The easiest way to do this is through the Django Admin interface.
+
+Run Your Server: Make sure your Django server and Celery worker are running.
+
+Log in to Django Admin: Navigate to your admin panel (e.g., http://127.0.0.1:8000/admin/) and log in as a superuser.
+
+Go to Periodic Tasks: In the admin dashboard, find the DJANGO_CELERY_BEAT section and click on Periodic Tasks.
+
+Add a New Periodic Task: Click the "Add periodic task" button.
+
+Configure the Task: Fill out the form like this:
+
+Name: Clean Up Stale Payments Every Hour (or any descriptive name).
+
+Task (registered): In the dropdown, find and select cleanup_stale_pending_transactions. This name comes from the @shared_task(name=...) decorator in your code.
+
+Interval: Click the green + to add a new interval schedule.
+
+Every: 1
+
+Period: Hours
+
+Click Save.
+
+Enabled: Make sure this box is checked.
+
+Save the Periodic Task: Click the Save button at the bottom of the page.
+
+That's it! Celery Beat will now automatically run your cleanup task every hour, keeping your database tidy and ensuring abandoned transactions are properly marked.
+
+3. How to Schedule the Task
+Creating the task code is the first part. The second part is telling Celery to run it automatically. You will do this from your Django Admin panel.
+
+Start your server and Celery worker.
+
+Log in to the Django Admin.
+
+Under the Celery Beat (or Periodic Tasks) section, navigate to Periodic Tasks.
+
+Click "Add Periodic Task".
+
+Fill out the form with the following details:
+
+Name: Clean Up Stale Pending Payments
+
+Task (registered): Select cleanup_stale_pending_transactions from the dropdown list. (If it's not there, restart your Celery worker so it can register the new task).
+
+Interval: Choose "Interval Schedule".
+
+Every: 12
+
+Period: Hours (This will run the task twice a day, which is a good frequency).
+
+Enabled: Make sure this box is checked.
+
+Click Save.
+
+That's it! Your system will now automatically maintain itself by cleaning up old transactions every 12 hours.

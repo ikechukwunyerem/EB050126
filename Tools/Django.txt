@@ -1,0 +1,21 @@
+mkdir backend && cd backend
+
+#Python Commands
+    python3.12 -m venv .venv && source .venv/bin/activate
+    pip install --upgrade pip && touch apps.txt
+    pip install -r apps.txt
+    pip freeze > apps.txt
+
+#Django Commands
+    django-admin startproject core .
+    python manage.py startapp router
+    python manage.py startapp userauth
+    python manage.py startapp notifications
+    python manage.py startapp newsletter
+    python manage.py startapp affiliates --template=./alpha
+    
+    python manage.py runserver
+    python manage.py runserver_plus --cert-file localhost+2.pem --key-file localhost+2-key.pem 8000 
+    python manage.py makemigrations
+    python manage.py migrate
+    python manage.py createsuperuser

@@ -1,0 +1,122 @@
+pip install pyOpenSSL
+Install nss-tools: dnf install nss-tools
+Download the latest mkcert binary for Linux: curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"
+Make the file executable and move it to a location in your PATH:
+chmod +x mkcert-v*-linux-amd64
+sudo mv mkcert-v*-linux-amd64 /usr/local/bin/mkcert
+
+create personal Certificate Authority and install it into the Linux trust stores.
+mkcert -install
+This will create your CA files in ~/.local/share/mkcert.
+
+Next, install mkcert on your Windows host using a package manager like Chocolatey.
+Open PowerShell as an Administrator.
+If you don't have Chocolatey, install it first:
+
+PowerShell
+
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+Install mkcert using Chocolatey:
+
+PowerShell
+
+choco install mkcert
+🔐 Step 4: Install the Same Local CA in Windows
+This is the most critical step. You must install the CA created by Linux (in Step 2) into the Windows trust store.
+
+In your RHEL 9 terminal, find the path to your CA root directory:
+
+Bash
+
+mkcert -CAROOT
+This will output a path like /home/your_user/.local/share/mkcert.
+
+Open PowerShell (as a regular user) and run mkcert -install again. It will automatically find and install the CA from your WSL instance into the Windows and browser trust stores.
+
+PowerShell
+
+mkcert -install
+You should see output indicating it found the CA from your WSL distribution.
+
+📜 Step 5: Generate Certificates for Your Project
+Now you can generate the certificate files for your local servers.
+
+In your RHEL 9 terminal, navigate to your Django project's root directory.
+
+Run mkcert to create certificate files for localhost:
+
+Bash
+
+mkcert localhost 127.0.0.1 ::1
+This will create two files in your current directory:
+
+localhost+2.pem (the certificate)
+
+localhost+2-key.pem (the private key)
+
+🛠️ Step 6: Configure Your Dev Servers
+Finally, tell your frontend and backend servers to use these new certificates.
+
+Vite (React Frontend)
+In your vite.config.js file, add an httpsS object to the server configuration:
+
+JavaScript
+
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import fs from 'fs';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    // Make sure you have the correct file names
+    https: {
+      key: fs.readFileSync('./localhost+2-key.pem'),
+      cert: fs.readFileSync('./localhost+2.pem'),
+    },
+  },
+});
+Django (Backend)
+The standard runserver doesn't support HTTPS. The easiest way is to use django-extensions.
+
+Install django-extensions:
+
+Bash
+
+pip install django-extensions werkzeug
+Add 'django_extensions' to your INSTALLED_APPS list in settings.py.
+
+Run your Django server using the runserver_plus command, pointing to your certificate files:
+
+Bash
+
+python manage.py runserver_plus --cert-file localhost+2.pem --key-file localhost+2-key.pem 8000
+You should now be able to access both your frontend and backend servers using https://localhost with a valid, trusted certificate.
+
+Your tree output shows that the certificate files are in the backend/ directory, but your vite.config.js is in the frontend/ directory and is looking for them in its own folder.
+
+The Solution
+You need to update the paths in your frontend/vite.config.js file to point to the correct location one directory up.
+
+Change this section in your vite.config.js:
+
+JavaScript
+
+// ...
+import fs from 'fs';
+import path from 'path'; // Import the 'path' module
+
+export default defineConfig({
+  // ...
+  server: {
+    https: {
+      key: fs.readFileSync(path.resolve(__dirname, '../backend/localhost+2-key.pem')),
+      cert: fs.readFileSync(path.resolve(__dirname, '../backend/localhost+2.pem')),
+    },
+  },
+});
+This uses an absolute path to ensure Vite can always find the certificate files in the backend directory, resolving the "no such file or directory" error
+
+
+
+

@@ -1,0 +1,15 @@
+Hi {{ user_full_name }},
+
+Welcome to {{ site_name }}! We're excited to have you on board.
+
+To activate your account, please verify your email address by visiting the link below.
+This link will expire in 24 hours.
+
+{{ verification_link }}
+
+If you did not create an account with {{ site_name }}, you can safely ignore this email.
+
+---
+Need help? Contact us at {{ support_email }}
+© {{ year }} {{ site_name }}. All rights reserved.
+{{ frontend_base_url }}

@@ -1,56 +1,68 @@
 # resources/admin.py
 from django.contrib import admin
-from .models import Resource, HeroSlide
+from mptt.admin import MPTTModelAdmin   # Issue #13: proper tree display
+
+from .models import Category, Resource, SavedResource, HeroSlide
+
+
+@admin.register(Category)
+class CategoryAdmin(MPTTModelAdmin):
+    """Issue #13: renders categories as an indented tree instead of a flat list."""
+    list_display = ('name', 'slug', 'parent')
+    search_fields = ('name',)
+    prepopulated_fields = {'slug': ('name',)}
+    mptt_level_indent = 20
+
 
 @admin.register(Resource)
 class ResourceAdmin(admin.ModelAdmin):
-    # What columns appear in the list view
-    list_display = ('title', 'resource_type', 'is_free', 'is_featured', 'created_at')
-    
-    # Fields you can edit directly from the list view
-    list_editable = ('is_free', 'is_featured')
-    
-    # Adds a filter sidebar on the right
-    list_filter = ('resource_type', 'is_free', 'is_featured', 'created_at')
-    
-    # Adds a search bar at the top
+    list_display = ('title', 'resource_type', 'access_level', 'status', 'is_featured', 'created_at')
+    list_editable = ('access_level', 'is_featured', 'status')
+    list_filter = ('resource_type', 'access_level', 'status', 'is_featured', 'created_at')
     search_fields = ('title', 'description')
-    
-    # Organizes the detail view
+    readonly_fields = ('created_at', 'updated_at', 'slug')
+
     fieldsets = (
         ('Basic Information', {
-            'fields': ('title', 'resource_type', 'description')
+            'fields': ('title', 'slug', 'resource_type', 'category', 'description'),
         }),
         ('Access & Visibility', {
-            'fields': ('is_free', 'is_featured')
+            'fields': ('access_level', 'status', 'is_featured'),
+            'description': (
+                'Set Access Level to "Free" to make this resource freely downloadable. '
+                '"Subscriber Only" requires an active subscription.'
+            ),
         }),
         ('Files & Media', {
-            'fields': ('cover_image', 'file')
+            # thumbnail_card/thumbnail_hero are virtual ImageSpecFields — not editable
+            'fields': ('file', 'cover_image'),
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
         }),
     )
 
 
+@admin.register(SavedResource)
+class SavedResourceAdmin(admin.ModelAdmin):
+    list_display = ('user', 'resource', 'saved_at')
+    search_fields = ('user__email', 'resource__title')
+    raw_id_fields = ('user', 'resource')
+    readonly_fields = ('saved_at',)
+
+
 @admin.register(HeroSlide)
 class HeroSlideAdmin(admin.ModelAdmin):
-    # What columns appear in the list view
     list_display = ('title', 'is_active', 'display_order', 'link')
-    
-    # Allows you to quickly reorder slides or turn them off
     list_editable = ('is_active', 'display_order')
-    
-    # Adds a search bar
     search_fields = ('title', 'subtitle')
-    
-    # Organizes the detail view
+
     fieldsets = (
-        ('Slide Content', {
-            'fields': ('title', 'subtitle', 'image')
-        }),
-        ('Call to Action (Button)', {
-            'fields': ('btn_text', 'link')
-        }),
+        ('Slide Content', {'fields': ('title', 'subtitle', 'image')}),
+        ('Call to Action', {'fields': ('btn_text', 'link')}),
         ('Visibility & Ordering', {
             'fields': ('is_active', 'display_order'),
-            'description': 'Lower display order numbers appear first. Uncheck "is_active" to hide the slide.'
+            'description': 'Lower display order numbers appear first.',
         }),
     )
