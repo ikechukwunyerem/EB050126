@@ -1,0 +1,52 @@
+/* src/components/ui/StarRating/StarRating.module.css */
+
+.starRating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.star {
+  color: var(--color-neutral-300);
+  line-height: 1;
+  padding: 0;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.star.active {
+  color: var(--color-accent-500);
+}
+
+.interactive .star {
+  cursor: pointer;
+}
+
+.interactive .star:hover,
+.interactive .star:hover ~ .star {
+  transform: scale(1.15);
+}
+
+.sm .star { font-size: 0.85rem; }
+.md .star { font-size: 1rem;    }
+.lg .star { font-size: 1.25rem; }
+
+.count {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.countNum {
+  color: var(--color-text-muted);
+  font-weight: var(--weight-regular);
+}

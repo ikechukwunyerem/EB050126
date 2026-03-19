@@ -1,0 +1,54 @@
+/* src/pages/Products/ProductDetail.module.css */
+
+.page { padding-top: var(--space-8); padding-bottom: var(--space-16); }
+
+.back { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-text-muted); text-decoration: none; margin-bottom: var(--space-6); transition: color var(--transition-fast); }
+.back:hover { color: var(--color-primary); }
+
+.layout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); align-items: start; }
+
+.imgWrapper { border-radius: var(--radius-2xl); overflow: hidden; border: 1px solid var(--color-border); aspect-ratio: 1/1; background-color: var(--color-surface-sunken); }
+.img { width: 100%; height: 100%; object-fit: cover; }
+.imgPlaceholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: var(--color-neutral-300); }
+
+.infoCol { display: flex; flex-direction: column; gap: var(--space-5); }
+
+.categoryLink { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; font-weight: var(--weight-bold); color: var(--color-text-muted); text-decoration: none; transition: color var(--transition-fast); }
+.categoryLink:hover { color: var(--color-primary); }
+
+.title { font-family: var(--font-display); font-size: var(--text-3xl); font-weight: var(--weight-extrabold); color: var(--color-text-primary); letter-spacing: -0.02em; line-height: var(--leading-tight); }
+
+.badges { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.typeBadge { font-size: var(--text-xs); font-weight: var(--weight-bold); padding: 3px var(--space-2); border-radius: var(--radius-sm); }
+.typeDigital  { background: var(--color-primary-100); color: var(--color-primary-700); }
+.typePhysical { background: var(--color-neutral-100); color: var(--color-neutral-600); }
+.outOfStock { font-size: var(--text-xs); font-weight: var(--weight-bold); padding: 3px var(--space-2); border-radius: var(--radius-sm); background: var(--color-error-100); color: var(--color-error-700); }
+
+.price { font-family: var(--font-display); font-size: var(--text-3xl); font-weight: var(--weight-extrabold); color: var(--color-text-primary); }
+
+.description { font-size: var(--text-base); color: var(--color-text-secondary); line-height: var(--leading-relaxed); }
+
+/* Download box */
+.downloadBox { display: flex; align-items: flex-start; gap: var(--space-4); padding: var(--space-4); background-color: var(--color-success-50); border: 1px solid var(--color-success-100); border-radius: var(--radius-xl); }
+.downloadCheckIcon { color: var(--color-success-500); font-size: var(--text-lg); flex-shrink: 0; margin-top: 2px; }
+.downloadTitle { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-success-700); margin-bottom: var(--space-1); }
+.downloadLink { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-primary); text-decoration: none; }
+.downloadLink:hover { text-decoration: underline; }
+
+/* Cart area */
+.cartArea { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.qtyRow { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+.qtyLabel { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-text-primary); }
+.qtyControl { display: flex; align-items: center; border: 1.5px solid var(--color-border-strong); border-radius: var(--radius-lg); overflow: hidden; }
+.qtyBtn { width: 36px; height: 36px; font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; transition: background-color var(--transition-fast); }
+.qtyBtn:hover:not(:disabled) { background-color: var(--color-surface-sunken); }
+.qtyBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.qtyInput { width: 44px; height: 36px; text-align: center; font-family: var(--font-body); font-size: var(--text-base); font-weight: var(--weight-semibold); border: none; border-left: 1.5px solid var(--color-border); border-right: 1.5px solid var(--color-border); color: var(--color-text-primary); }
+.qtyInput:focus { outline: none; }
+.stockNote { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+.errorState { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); padding: var(--space-20) 0; text-align: center; }
+.errorState h2 { font-family: var(--font-display); font-size: var(--text-xl); color: var(--color-text-primary); }
+
+@media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }

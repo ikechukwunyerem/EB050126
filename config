@@ -1,0 +1,5 @@
+Host efiko
+  HostName 3.23.198.200
+  User ec2-user                
+  IdentityFile ~/Documents/Dev_Ops/Key/efiko-key.pem
+  IdentitiesOnly yes

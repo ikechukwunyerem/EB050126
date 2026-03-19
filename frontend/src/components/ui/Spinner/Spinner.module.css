@@ -1,0 +1,32 @@
+/* src/components/ui/Spinner/Spinner.module.css */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.fullPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+}
+
+.spinner {
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  animation: spin 0.7s linear infinite;
+}
+
+.sm { width: 20px; height: 20px; border-width: 2px; }
+.md { width: 36px; height: 36px; border-width: 3px; }
+.lg { width: 52px; height: 52px; border-width: 4px; }
+
+.message {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+}

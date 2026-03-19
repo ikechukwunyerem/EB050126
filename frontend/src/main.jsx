@@ -1,19 +1,22 @@
 // src/main.jsx
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
-import { GoogleOAuthProvider } from '@react-oauth/google'
-import { AuthProvider } from './context/AuthContext.jsx' // <-- Import Provider
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+// Global styles — order matters:
+// 1. tokens.css  — custom properties (must be first, everything references these)
+// 2. reset.css   — zero out browser defaults
+// 3. global.css  — base element styles + utilities
+import './styles/tokens.css';
+import './styles/reset.css';
+import './styles/global.css';
+
+// Initialise auth store so the 'efiko:logout' listener is attached
+// before any component renders and tries to make authenticated requests.
+import './store/authStore';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <AuthProvider> {/* <-- Wrap the App */}
-        <App />
-      </AuthProvider>
-    </GoogleOAuthProvider>
-  </React.StrictMode>,
-)
+    <App />
+  </React.StrictMode>
+);

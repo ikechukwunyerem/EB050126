@@ -1,52 +1,47 @@
 // src/App.jsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Library from './pages/Library';
-import Login from './pages/Login';
-import Register from './pages/Register'; // <-- Added Register import
-import ResourceDetail from './pages/ResourceDetail';
-import Products from './pages/Products';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
-import PaymentSuccess from './pages/PaymentSuccess';
-import Pricing from './pages/Pricing';
-import Dashboard from './pages/Dashboard';
-import SearchResults from './pages/SearchResults';
-import BlogList from './pages/BlogList';
-import BlogPostDetail from './pages/BlogPostDetail';
-import ProductDetail from './pages/ProductDetail';
-import Footer from './components/Footer';
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ToastProvider, toast } from './components/ui/Toast/Toast';
+import AppRouter from './routes/AppRouter';
 
-function App() {
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        const status = error?.response?.status;
+        if (status && status >= 400 && status < 500) return false;
+        return failureCount < 2;
+      },
+      staleTime:            60 * 1000,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect:   true,
+    },
+    mutations: { retry: false },
+  },
+  mutationCache: new MutationCache({
+    onError: (error, _vars, _ctx, mutation) => {
+      if (mutation.options.onError) return;
+      if (!error?.response?.status) {
+        toast.error('A network error occurred. Please check your connection.');
+      }
+    },
+  }),
+});
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+export default function App() {
   return (
-    <BrowserRouter>
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Navbar />
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/library" element={<Library />} />
-            <Route path="/library/:id" element={<ResourceDetail />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} /> {/* <-- Added Register Route */}
-            <Route path="/products" element={<Products />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/search" element={<SearchResults />} />
-            <Route path="/blog" element={<BlogList />} />
-            <Route path="/blog/:slug" element={<BlogPostDetail />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
-            <Route path="*" element={<h2 style={{ textAlign: 'center', marginTop: '50px' }}>404 - Page Not Found</h2>} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <BrowserRouter>
+            <AppRouter />
+          </BrowserRouter>
+        </ToastProvider>
+      </QueryClientProvider>
+    </GoogleOAuthProvider>
   );
 }
-
-export default App;

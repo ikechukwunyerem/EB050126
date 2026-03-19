@@ -1,0 +1,230 @@
+/* src/components/ui/HeroCarousel/HeroCarousel.module.css */
+
+/* ── Shell ── */
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 560px;
+  overflow: hidden;
+  background-color: var(--color-neutral-800);
+  /* Sit flush under the fixed nav */
+  margin-top: 0;
+}
+
+/* ── Slide ── */
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Entrance animations */
+@keyframes slideFromRight {
+  from { transform: translateX(6%); opacity: 0; }
+  to   { transform: translateX(0);  opacity: 1; }
+}
+
+@keyframes slideFromLeft {
+  from { transform: translateX(-6%); opacity: 0; }
+  to   { transform: translateX(0);   opacity: 1; }
+}
+
+.anim_next { animation: slideFromRight 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+.anim_prev { animation: slideFromLeft  0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+
+/* Background image */
+.slideImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Gradient overlay — ensures text legibility over any image */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0.35) 50%,
+    rgba(0, 0, 0, 0.1)  100%
+  );
+}
+
+/* ── Content ── */
+.slideContent {
+  position: relative;
+  z-index: 1;
+  padding-top: var(--nav-height);
+}
+
+.slideText {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  animation: contentIn 0.65s 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes contentIn {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.slideTitle {
+  font-family: var(--font-display);
+  font-size: clamp(var(--text-2xl), 4.5vw, var(--text-4xl));
+  font-weight: var(--weight-extrabold);
+  color: var(--color-neutral-0);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+}
+
+.slideSubtitle {
+  font-size: var(--text-lg);
+  color: rgba(255, 255, 255, 0.85);
+  line-height: var(--leading-relaxed);
+  max-width: 440px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+}
+
+.slideCta {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  height: 52px;
+  padding: 0 var(--space-8);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  color: var(--color-neutral-0);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(59, 150, 243, 0.45);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  white-space: nowrap;
+}
+
+.slideCta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(59, 150, 243, 0.6);
+  color: var(--color-neutral-0);
+}
+
+/* ── Navigation buttons ── */
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: var(--color-neutral-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-base);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background var(--transition-fast), transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.navBtn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.navBtnPrev { left: var(--space-6); }
+.navBtnNext { right: var(--space-6); }
+
+/* ── Dot indicators ── */
+.dots {
+  position: absolute;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--transition-fast), width var(--transition-base), transform var(--transition-fast);
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: scale(1.2);
+}
+
+.dotActive {
+  width: 24px;
+  background: var(--color-neutral-0);
+}
+
+/* ── Progress bar ── */
+.progressTrack {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  z-index: 10;
+}
+
+.progressBar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary-400), var(--color-accent-400));
+  animation: progress 5s linear forwards;
+  transform-origin: left;
+}
+
+@keyframes progress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ── Skeleton ── */
+.skeletonSlide {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .carousel { height: 420px; }
+  .navBtnPrev { left: var(--space-3); }
+  .navBtnNext { right: var(--space-3); }
+  .navBtn { width: 36px; height: 36px; font-size: var(--text-sm); }
+  .slideTitle { font-size: var(--text-2xl); }
+  .slideSubtitle { font-size: var(--text-base); }
+  .slideCta { height: 44px; padding: 0 var(--space-6); }
+}
+
+@media (max-width: 480px) {
+  .carousel { height: 340px; }
+  .slideTitle { font-size: var(--text-xl); }
+  .slideSubtitle { display: none; }
+}
