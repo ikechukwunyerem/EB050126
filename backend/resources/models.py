@@ -1,8 +1,10 @@
 # resources/models.py
+import io
 from django.db import models, transaction
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
+from django.core.files.base import ContentFile
 
 # MPTT for hierarchical categories
 from mptt.models import MPTTModel, TreeForeignKey
@@ -11,10 +13,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from django.contrib.postgres.search import SearchVectorField, SearchVector
 from django.contrib.postgres.indexes import GinIndex
 
-# Option B: django-imagekit replaces the thumbnail ImageField entirely.
-# ImageSpecField is a virtual field — no migration needed when adding new sizes.
-from imagekit.models import ImageSpecField
-from imagekit.processors import ResizeToFill
+from PIL import Image
 
 
 class Category(MPTTModel):
@@ -82,21 +81,8 @@ class Resource(models.Model):
     cover_image = models.ImageField(
         upload_to='resources/covers/originals/', blank=True, null=True
     )
-
-    # Virtual fields — derived from cover_image, no DB column, no migration.
-    # Generated on first request, cached automatically, works with cloud storage.
-    # Add new sizes here freely with zero DB impact.
-    thumbnail_card = ImageSpecField(
-        source='cover_image',
-        processors=[ResizeToFill(300, 157)],    # 16:9 card thumbnail
-        format='WEBP',
-        options={'quality': 80},
-    )
-    thumbnail_hero = ImageSpecField(
-        source='cover_image',
-        processors=[ResizeToFill(800, 450)],    # 16:9 hero / featured banner
-        format='WEBP',
-        options={'quality': 85},
+    cover_thumbnail = models.ImageField(
+        upload_to='resources/covers/thumbnails/', blank=True, null=True
     )
 
     is_featured = models.BooleanField(
@@ -120,7 +106,67 @@ class Resource(models.Model):
             GinIndex(fields=['search_vector'], name='resource_search_gin'),
         ]
 
+    def _generate_thumbnail(self):
+        """
+        Resize cover_image to 400×300 (crop) in memory using Pillow and
+        save the result directly to cover_thumbnail. Never writes to local disk.
+        """
+        img = Image.open(self.cover_image)
+        img = img.convert('RGB')
+
+        # Crop to 4:3 ratio first, then resize
+        src_w, src_h = img.size
+        target_ratio = 400 / 300
+        src_ratio = src_w / src_h
+
+        if src_ratio > target_ratio:
+            # Image is wider — crop the sides
+            new_w = int(src_h * target_ratio)
+            offset = (src_w - new_w) // 2
+            img = img.crop((offset, 0, offset + new_w, src_h))
+        else:
+            # Image is taller — crop the top/bottom
+            new_h = int(src_w / target_ratio)
+            offset = (src_h - new_h) // 2
+            img = img.crop((0, offset, src_w, offset + new_h))
+
+        img = img.resize((400, 300), Image.LANCZOS)
+
+        # Resize cover_image to max 1200px wide while keeping aspect ratio
+        buffer = io.BytesIO()
+        img.save(buffer, format='JPEG', quality=85, optimize=True)
+        buffer.seek(0)
+
+        # Derive a filename from the original cover_image name
+        original_name = self.cover_image.name.split('/')[-1]
+        base_name = original_name.rsplit('.', 1)[0]
+        thumb_name = f'{base_name}_thumb.jpg'
+
+        self.cover_thumbnail.save(thumb_name, ContentFile(buffer.read()), save=False)
+
+    def _resize_cover_image(self):
+        """
+        Resize cover_image down to a max width of 1200px in memory.
+        Overwrites the field content without changing the file name or path.
+        """
+        img = Image.open(self.cover_image)
+        img = img.convert('RGB')
+
+        max_width = 1200
+        if img.width > max_width:
+            ratio = max_width / img.width
+            new_size = (max_width, int(img.height * ratio))
+            img = img.resize(new_size, Image.LANCZOS)
+
+        buffer = io.BytesIO()
+        img.save(buffer, format='JPEG', quality=85, optimize=True)
+        buffer.seek(0)
+
+        original_name = self.cover_image.name.split('/')[-1]
+        self.cover_image.save(original_name, ContentFile(buffer.read()), save=False)
+
     def save(self, *args, **kwargs):
+        # ---- Slug generation (race-condition-safe) ----
         if not self.slug:
             base_slug = slugify(self.title)
             with transaction.atomic():
@@ -132,6 +178,23 @@ class Resource(models.Model):
                         break
                     slug = f'{base_slug}-{counter}'
                     counter += 1
+
+        # ---- Image processing ----
+        # Detect whether cover_image has changed (or is new)
+        cover_changed = False
+        if self.cover_image:
+            if self.pk:
+                try:
+                    old = Resource.objects.get(pk=self.pk)
+                    cover_changed = old.cover_image.name != self.cover_image.name
+                except Resource.DoesNotExist:
+                    cover_changed = True
+            else:
+                cover_changed = True  # New instance
+
+        if cover_changed and self.cover_image:
+            self._resize_cover_image()
+            self._generate_thumbnail()
 
         super().save(*args, **kwargs)
 

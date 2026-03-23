@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "mptt",
     "django_bleach",
-    "imagekit",
     "django_filters",
     "django_celery_beat",
 
@@ -227,12 +226,6 @@ REST_FRAMEWORK.update({
 # Add the notifications/templates directory to TEMPLATES[0]['DIRS'].
 TEMPLATES[0]["DIRS"] = [BASE_DIR / "notifications" / "templates"]
 
-# --- django-imagekit ---
-# Thumbnails are generated on first request and stored in MEDIA_ROOT.
-# IMAGEKIT_CACHEFILE_DIR controls the subdirectory within MEDIA_ROOT.
-IMAGEKIT_CACHEFILE_DIR = 'CACHE/images'
-# Use Redis for the imagekit async strategy (consistent with existing Celery/Redis setup)
-IMAGEKIT_DEFAULT_CACHEFILE_STRATEGY = 'imagekit.cachefiles.strategies.Optimistic'
 
 # --- django-filter ---
 # Makes DjangoFilterBackend available globally in DRF viewsets
@@ -284,14 +277,16 @@ CACHES = {
 }
 
 if not DEBUG:
-    DEFAULT_FILE_STORAGE     = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_ACCESS_KEY_ID        = _os.getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY    = _os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME  = _os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_REGION_NAME       = _os.getenv('AWS_S3_REGION_NAME', 'us-east-2')
-    AWS_S3_FILE_OVERWRITE    = False
-    AWS_DEFAULT_ACL          = None
-    AWS_S3_SIGNATURE_VERSION = 's3v4'
-    AWS_S3_ADDRESSING_STYLE  = 'virtual'
-    AWS_S3_CUSTOM_DOMAIN     = f"{_os.getenv('AWS_STORAGE_BUCKET_NAME')}.s3.us-east-2.amazonaws.com"
-    MEDIA_URL                = f"https://{_os.getenv('AWS_STORAGE_BUCKET_NAME')}.s3.us-east-2.amazonaws.com/"
+    DEFAULT_FILE_STORAGE          = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_ACCESS_KEY_ID             = _os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY         = _os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME       = _os.getenv('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_REGION_NAME            = _os.getenv('AWS_S3_REGION_NAME', 'us-east-2')
+    AWS_S3_FILE_OVERWRITE         = False
+    AWS_DEFAULT_ACL               = 'public-read'
+    AWS_S3_OBJECT_PARAMETERS      = {'ContentDisposition': 'inline'}
+    AWS_S3_SIGNATURE_VERSION      = 's3v4'
+    AWS_S3_ADDRESSING_STYLE       = 'virtual'
+    AWS_QUERYSTRING_AUTH          = False
+    AWS_S3_CUSTOM_DOMAIN          = f"{_os.getenv('AWS_STORAGE_BUCKET_NAME')}.s3.us-east-2.amazonaws.com"
+    MEDIA_URL                     = f"https://{_os.getenv('AWS_STORAGE_BUCKET_NAME')}.s3.us-east-2.amazonaws.com/"

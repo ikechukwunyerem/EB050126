@@ -9,7 +9,7 @@ from .models import Category, Resource, SavedResource, HeroSlide
 
 class CategorySerializer(serializers.ModelSerializer):
     """
-    Issue #4: includes recursive children so the frontend can render a full
+    Includes recursive children so the frontend can render a full
     nested category tree rather than a flat unstructured list.
     """
     children = serializers.SerializerMethodField()
@@ -32,17 +32,12 @@ class ResourceListSerializer(serializers.ModelSerializer):
     """
     Lightweight serializer for list views — returns card-sized thumbnail,
     no file URL (access control enforced in ResourceDetailSerializer).
-
-    Issue #9: exposes is_free and is_featured.
-    Issue #5: file field intentionally omitted from list responses.
     """
     category = CategorySerializer(read_only=True)
     is_free = serializers.BooleanField(read_only=True)
 
-    # Issue #2 / Option B: imagekit generates these on first access from cover_image.
-    # SerializerMethodField builds absolute URLs safely regardless of storage backend.
-    thumbnail_card = serializers.SerializerMethodField()
-    thumbnail_hero = serializers.SerializerMethodField()
+    cover_image = serializers.SerializerMethodField()
+    cover_thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = Resource
@@ -50,37 +45,30 @@ class ResourceListSerializer(serializers.ModelSerializer):
             'id', 'title', 'slug', 'description',
             'category', 'resource_type', 'access_level', 'is_free',
             'status', 'is_featured',
-            'cover_image', 'thumbnail_card', 'thumbnail_hero',
+            'cover_image', 'cover_thumbnail',
             'created_at',
         ]
 
-    def get_thumbnail_card(self, obj):
+    def get_cover_image(self, obj):
         if not obj.cover_image:
             return None
-        try:
-            request = self.context.get('request')
-            url = obj.thumbnail_card.url
-            return request.build_absolute_uri(url) if request else url
-        except Exception:
-            return None
+        request = self.context.get('request')
+        url = obj.cover_image.url
+        return request.build_absolute_uri(url) if request else url
 
-    def get_thumbnail_hero(self, obj):
-        if not obj.cover_image:
+    def get_cover_thumbnail(self, obj):
+        if not obj.cover_thumbnail:
             return None
-        try:
-            request = self.context.get('request')
-            url = obj.thumbnail_hero.url
-            return request.build_absolute_uri(url) if request else url
-        except Exception:
-            return None
+        request = self.context.get('request')
+        url = obj.cover_thumbnail.url
+        return request.build_absolute_uri(url) if request else url
 
 
 class ResourceDetailSerializer(ResourceListSerializer):
     """
     Full serializer for detail views.
 
-    Issue #1 / #5: the `file` field is conditionally included based on
-    the user's entitlement:
+    The `file` field is conditionally included based on the user's entitlement:
       - Free resources: authenticated users only
       - Subscriber resources: active subscribers only
     Unauthenticated or non-subscribed users receive null for `file`.
@@ -126,7 +114,7 @@ class ResourceDetailSerializer(ResourceListSerializer):
 
 
 # ---------------------------------------------------------------------------
-# SavedResource  (Issue #11 / #14: bookmark feature now has an API serializer)
+# SavedResource  (bookmark feature)
 # ---------------------------------------------------------------------------
 
 class SavedResourceSerializer(serializers.ModelSerializer):
